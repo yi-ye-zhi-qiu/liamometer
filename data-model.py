@@ -26,19 +26,28 @@ Gives you nearby hiking trails using Google Earth, that you may not have seen ye
 """
 
 
-from sklearn.feature_extraction.text import CountVectorizer
-text = ["London Paris London Eggplant", "Paris Paris London"]
-
-vectorizer = CountVectorizer()
-X = vectorizer.fit_transform(text)
-print(X.toarray())
-
-#find cosine similarity (distance between vectors)
-from sklearn.metrics.pairwise import cosine_similarity
-print(cosine_similarity(X))
+# from sklearn.feature_extraction.text import CountVectorizer
+# text = ["London Paris London Eggplant", "Paris Paris London"]
+#
+# vectorizer = CountVectorizer()
+# X = vectorizer.fit_transform(text)
+#
+# #find cosine similarity (distance between vectors)
+# from sklearn.metrics.pairwise import cosine_similarity
 
 # [[1.         0.73029674]
 #  [0.73029674 1.        ]]
 #first text similar to that of 2nd text by 100%, second text to 0.73029674, etc.
 
 #Need to construct similarity matrix of movies to say which ones are most similar to others... by using the angular distance
+
+example = ['Jan 17, 2020',
+ 'Action Comedy Crime Thriller',
+ 'Feb 14, 2020',
+ 'Action Adventure Comedy Family Sci-Fi',
+ 'Feb 7, 2020',
+ 'Action Adventure Comedy Crime',
+ 'Jan 17, 2020',
+ 'Adventure Comedy Family Fantasy']
+
+print([x for x in example if example.index(x) %2 !=0 ])

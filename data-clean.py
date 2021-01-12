@@ -4,10 +4,11 @@ Retrieve & clean data.
 
 Start with movies (pracitce-r)
 用movies来练习一点点
+asd
 """
 
 
-## WANT: title, gross domestic, gross international, worldwide, & genres
+## WANT: title, genre, release date, gross_$
 ## SLOW: BeautifulSoup
 
 from bs64 import BeautifulSoup as soup
@@ -18,59 +19,69 @@ import numpy as np
 
 def webscrape_slower():
 
-    def get_central():
-        url = ""
+    def get_raw_data():
+
+        #parent = top movies for 2020
+        url = "https://www.boxofficemojo.com/year/2020/?sortDir=asc&sort=rank&grossesOption=totalGrosses"
         res = req.get(url)
         parent_content = soup(res.content, 'html.parser')
 
-
-        parent_content = SoupStrainer('td') #optimize speed slightly? ?
+        #parent_content = SoupStrainer('td') #optimize speed slightly? ?
 
         parent_link = parent_content.find_all('td', class_='a-text-right mojo-header-column mojo-truncate mojo-field-type-rank mojo-sort-column')
 
+        #lazy way of grabbing titles and links
+        raw_parent = parent_content.find_all('td', class_='a-text-left mojo-field-type-release mojo-cell-wide')
+        parent_name, parent_link = [], []
+        for name in raw_parent:
+            panret_name.append(name.find('a').getText())
+            parent_link.append(name.find('a')['href'])
 
+        #lazy way of getting how much money a movie made
 
+        raw_gross = parent_content.find_all('td', class_='a-text-right mojo-field-type-money mojo-estimatable')
+        gross = []
+        for movie in raw_gross:
+            gross.append(movie)
+
+        genres, release_dates = [], []
+
+        #iterate through parent_links and grab genre, release date
         for i in parent_link:
+            #这个语句： 检测 能 链接网站
+            #可以：
             try:
+                #child （孩子） 就是每一个电影
                 child_url = '' + i
                 child_req = req.get(child_url)
                 child_content = soup(child_req.content, 'html.parser')
 
-                for v in j.find_all('a'):
-                    if v is None:
-                        continue;
-                    if p.match(v.get('href', '')) is not None:
-                        if v.string == 'Genres':
-                            print("<a href='%s'>%s</a>" % (v.get('href'), v.string))
-                            print(j.select_one('p:nth-child(1)'))
-                    else:
-                        continue;
+                elm, genres, release_date = [], [], []
+                #每一个电影的 genre, supply tuple list of things we want to find
+                for elm in child_content.find_all('span', text=lambda value: value and value.startswith("Genre", "Release Date")):
 
-            except Exception as req.exceptions.ConenctionError:
-                r.status_code = 'Connection refused by boxoficemojo'
+                    #掉不要的换行
+                    elms = re.sub("\s{1,}", " ", elm.nextSibling.text.replace('\n', ''))
 
-        for i in parent_link:
-            try:
-                child_url = '' + i
-                child_req = req.get(child_url)
-                child_content = soup(child_req.content, 'html.parser')
-                time.sleep(2)
+                genres = [this_elm for this_elm in elms if elms.index(this_elm) %2==0]
+                release_date = [this_elm for this_elm in elms if elms.index(this_elm) %2 != 0]
 
-                #loop through child_content & find Genre
-                for j in child_content.find_all('')
-                    genre_span = j.select_one('span[content*=Genres] > p:nth-of-type(1)')
-                    time.sleep(2)
+                time.sleep(1)
+            #不可以 你就停下来了
+            except Exception as req.exceptions.ConnectionError:
+                r.status_code = 'Connection refused by boxoficemojo, likely due to too many attempts to connect. Try importing time and using time.sleep between requests to url.'
 
-            except req.exceptions.ConnectionError:
-                r.status_code = 'Connection refused by boxofficemojo'
 
-    movies = pd.DataFrame({
-        'title': a,
-        'rank': b,
-        'gross': c,
-        'genre': d
-    })
+        #import timeit
+        #%timeit for i in l: get_central() #doesn't work
 
+        #have to avoid arrays of differing lengths,
+        movies = {'title': titles, 'gross': gross, 'genre': genres, 'release date': release_date}
+        #take movies and construct df from dict of array-like titles, genres
+        #psas index as orientation
+        df = pd.DataFrame.from_dict(movies, orient='index')
+        df = df.transpose()
+        return df
 
 #log runtime?
 
