@@ -23,19 +23,46 @@ def webscrape_slower():
         res = req.get(url)
         parent_content = soup(res.content, 'html.parser')
 
+
         parent_content = SoupStrainer('td') #optimize speed slightly? ?
 
         parent_link = parent_content.find_all('td', class_='a-text-right mojo-header-column mojo-truncate mojo-field-type-rank mojo-sort-column')
 
+
+
         for i in parent_link:
-            child_url = '' + i;
-            child_req = req.get(child_url)
-            child_content = soup(child_req.content, 'html.parser')
+            try:
+                child_url = '' + i
+                child_req = req.get(child_url)
+                child_content = soup(child_req.content, 'html.parser')
 
-            for j in child_content.find_all('div', attrs={'id': 'mojo-summary-details-discloser'}):
-                #take child node of span tag for Genre
-                genre_span = j.select_one('span[content*=Genre] > p:nth-of-type(1)')
+                for v in j.find_all('a'):
+                    if v is None:
+                        continue;
+                    if p.match(v.get('href', '')) is not None:
+                        if v.string == 'Genres':
+                            print("<a href='%s'>%s</a>" % (v.get('href'), v.string))
+                            print(j.select_one('p:nth-child(1)'))
+                    else:
+                        continue;
 
+            except Exception as req.exceptions.ConenctionError:
+                r.status_code = 'Connection refused by boxoficemojo'
+
+        for i in parent_link:
+            try:
+                child_url = '' + i
+                child_req = req.get(child_url)
+                child_content = soup(child_req.content, 'html.parser')
+                time.sleep(2)
+
+                #loop through child_content & find Genre
+                for j in child_content.find_all('')
+                    genre_span = j.select_one('span[content*=Genres] > p:nth-of-type(1)')
+                    time.sleep(2)
+
+            except req.exceptions.ConnectionError:
+                r.status_code = 'Connection refused by boxofficemojo'
 
     movies = pd.DataFrame({
         'title': a,
