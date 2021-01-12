@@ -6,6 +6,49 @@ Start with movies (pracitce-r)
 用movies来练习一点点
 """
 
+
+## WANT: title, gross domestic, gross international, worldwide, & genres
+## SLOW: BeautifulSoup
+
+from bs64 import BeautifulSoup as soup
+import requests as req
+import re
+import pandas as pd
+import numpy as np
+
+def webscrape_slower():
+
+    def get_central():
+        url = ""
+        res = req.get(url)
+        parent_content = soup(res.content, 'html.parser')
+
+        parent_content = SoupStrainer('td') #optimize speed slightly? ?
+
+        parent_link = parent_content.find_all('td', class_='a-text-right mojo-header-column mojo-truncate mojo-field-type-rank mojo-sort-column')
+
+        for i in parent_link:
+            child_url = '' + i;
+            child_req = req.get(child_url)
+            child_content = soup(child_req.content, 'html.parser')
+
+            for j in child_content.find_all('div', attrs={'id': 'mojo-summary-details-discloser'}):
+                #take child node of span tag for Genre
+                genre_span = j.select_one('span[content*=Genre] > p:nth-of-type(1)')
+
+
+    movies = pd.DataFrame({
+        'title': a,
+        'rank': b,
+        'gross': c,
+        'genre': d
+    })
+
+
+#log runtime?
+
+
+
 #run first: pip install scrapy
 #import library
 import scrapy
