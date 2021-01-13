@@ -25,9 +25,6 @@ def get_df():
     url = "https://www.boxofficemojo.com/year/2020/?sortDir=asc&sort=rank&grossesOption=totalGrosses"
     res = req.get(url)
     parent_content = soup(res.content, 'html.parser')
-
-    #parent_content = SoupStrainer('td') #optimize speed slightly? ?
-
     parent_link = parent_content.find_all('td', class_='a-text-right mojo-header-column mojo-truncate mojo-field-type-rank mojo-sort-column')
 
     #lazy way of grabbing titles and links
@@ -37,8 +34,7 @@ def get_df():
         parent_name.append(name.find('a').getText())
         parent_link.append(name.find('a')['href'])
 
-    #lazy way of getting how much money a movie made
-
+    #lazy way of getting gross income of a movie
     raw_gross = parent_content.find_all('td', class_='a-text-right mojo-field-type-money mojo-estimatable')
     gross = []
     for movie in raw_gross:
@@ -51,92 +47,29 @@ def get_df():
 
     #iterate through parent_links and grab genre, release date
     for i in parent_link:
-        #这个语句： 检测 能 链接网站
-        #可以：
         try:
-            #child （孩子） 就是每一个电影
+
             child_url = 'https://www.boxofficemojo.com' + i
             child_req = req.get(child_url)
             child_content = soup(child_req.content, 'html.parser')
-
-            #每一个电影的 genre, supply tuple list of things we want to find
+            #supply tuple list of things we want to find
             for elm in child_content.find_all('span', text=lambda value: value and value.startswith(("Genre", "Release Date"))):
-
-                #掉不要的换行
                 elms.append(re.sub("\s{1,}", " ", elm.nextSibling.text.replace('\n', '')))
 
-            print(elms)
             genres = [e for e in elms if elms.index(e) %2==0]
             release_date = [e for e in elms if elms.index(e) %2 != 0]
 
             time.sleep(1)
-        #不可以 你就停下来了
+
         except req.exceptions.ConnectionError:
             child_req.status_code = 'Connection refused by boxoficemojo, likely due to too many attempts to connect. Try importing time and using time.sleep between requests to url.'
-
-
-    #import timeit
-    #%timeit for i in l: get_central() #doesn't work
 
     #have to avoid arrays of differing lengths,
     movies = {'title': parent_name, 'gross': gross, 'genre': genres, 'release date': release_date}
     #take movies and construct df from dict of array-like titles, genres
-    #psas index as orientation
     df = pd.DataFrame.from_dict(movies, orient='index')
     df = df.transpose()
     print(df)
     return df
 
-
-def faster_scrape():
-
-    #run first: pip install scrapy
-    #import library
-    import scrapy
-
-                        #spider inherits from base
-    class RedditSpider(scrapy.Spider): #class to put logic for data extraction
-        name = 'reddit'
-        start_urls = ["https://www.reddit.com/r/cats"] #only scrape first page
-        #specified the website
-        #define logic of data extraction
-
-        #how to tell reddit spider that it's found img?
-
-        #correspond to spider object and its response respectively
-        def parse(self, response):
-            #imgs located in img tag
-            #search through img tag and specify extension type of jpg, gif etc.
-
-            #get href by using xpath selector
-            links = response.xpath("//img/@src")
-
-            #to build new html page, build it incrementally as we counter img
-            #build html as a string, use string comprehension to append html to string
-
-            #instantiate html
-            html =""
-
-            #iterate through links
-
-            for link in links:
-                #get url as a string
-                url = link.get()
-                #compare if contains img by comparing extension type
-
-                #use condition any statement
-
-                if any(extension in url for extension in [".jpg", ".gif", ".png"]):
-                    html += """<a href="{url}"
-                    target = "_blank">
-                    <img src="{url}" height = "33%" width="33%"/>
-                    <a/>""".format(url=url)
-                    #use string formatting to build dynamically
-                    #open existing file or create new one to save output
-
-                    #with statement to perform write operation on file
-                    with open("frontpage.html", "a") as page:
-                        #append new data to frontpage.html and manipulate as variable page
-                        page.write(html) #writes string built from within loop
-                        #close file to commit changes
-                        page.close()
+get_df()
