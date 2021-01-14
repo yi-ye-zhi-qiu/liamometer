@@ -21,16 +21,14 @@ class mojo_spider(scrapy.Spider):
     def parse_page_contents(self, response):
         item = BoxItem()
         elements = []
-        # for div in response.xpath('//*[@id="a-page"]/main/div/div[3]/div[4]/div')[0:]:
-        #     elements.append(' '.join(div.xpath('./span[1]/text()')[0].extract().split()))
-            #gives available fields, like '['Distributor','Opening','Release Date','Running Time','Genres','In Release','Widest Release','IMDbPro']'
-            #give MPAA if exists else none
-            # if 'MPAA' in elements:
-            #     m = elements.index('MPAA') + 1
-            #     loc_MPAA = '//*[@id="a-page"]/main/div/div[3]/div[4]/div[{}]/span[2]/text()'.format(m)
-            #     item["MPAA"] = response.xpath(loc_MPAA)[0].extract()
-            # else:
-            #     item["MPAA"] = "N/A"
+        for div in response.xpath('//*[@id="a-page"]/main/div/div[3]/div[4]/div')[0:]:
+            elements.append(' '.join(div.xpath('./span[1]/text()')[0].extract().split()))
+            if 'MPAA' in elements:
+                m = elements.index('MPAA') + 1
+                loc_MPAA = '//*[@id="a-page"]/main/div/div[3]/div[4]/div[{}]/span[2]/text()'.format(m)
+                item["MPAA"] = response.xpath(loc_MPAA)[0].extract()
+            else:
+                item["MPAA"] = "N/A"
 
         item['title'] = response.xpath('//*[@id="a-page"]/main/div/div[1]/div[1]/div/div/div[2]/h1/text()')[0].extract()
         item['domestic_revenue'] = response.xpath('//*[@id="a-page"]/main/div/div[3]/div[1]/div/div[1]/span[2]/span/text()')[0].extract()
@@ -41,17 +39,6 @@ class mojo_spider(scrapy.Spider):
         item['budget'] = response.xpath('//*[@id="a-page"]/main/div/div[3]/div[4]/div[3]/span[2]/span/text()')[0].extract()
         item['genres'] = ','.join(response.xpath('//*[@id="a-page"]/main/div/div[3]/div[4]/div[7]/span[2]/text()')[0].extract().split())
         item['release_days'] = response.xpath('//*[@id="a-page"]/main/div/div[3]/div[4]/div[4]/span[2]/a/text()')[0].extract()
-        item['MPAA'] = response.xpath('//*[@id="a-page"]/main/div/div[3]/div[4]/div[5]/span[2]/text()')[0].extract()
-
-        # item['title'] = response.xpath('//*[@id="a-page"]/main/div/div[1]/div[1]/div/div/div[2]/div/h1/text()')[0].extract()
-        # item['domestic_revenue'] = response.xpath('//*[@id="a-page"]/main/div/div[3]/div[1]/div/div[1]/span[2]/span/text()')[0].extract()
-        # item['world_revenue'] = response.xpath('//*[@id="a-page"]/main/div/div[3]/div[1]/div/div[2]/span[2]/span/text()')[0].extract()
-        # item['distributor'] = response.xpath('//*[@id="a-page"]/main/div/div[3]/div[4]/div[1]/span[2]/text()')[0].extract()
-        # item['opening_revenue'] = response.xpath('//*[@id="a-page"]/main/div/div[3]/div[4]/div[2]/span[2]/a/span/text()')[0].extract()
-        # item['opening_theaters'] = response.xpath('//*[@id="a-page"]/main/div/div[3]/div[4]/div[3]/span[2]/span/text()')[0].extract()
-        # item['budget'] = response.xpath('//*[@id="a-page"]/main/div/div[3]/div[4]/div[3]/span[2]/span/text()')[0].extract()
-        # item['genres'] = ",".join(response.xpath('//*[@id="a-page"]/main/div/div[3]/div[4]/div[7]/span[2]/text()')[0].extract().split())
-        # item['release_days'] = response.xpath('//*[@id="a-page"]/main/div/div[3]/div[4]/div[4]/span[2]/text()')[0].extract()
         yield item
 
 
