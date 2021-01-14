@@ -1,6 +1,6 @@
 import scrapy
 
-class scrapy_item(scrapy.Item):
+class BoxItem(scrapy.Item):
     title = scrapy.Field()
     domestic_revenue = scrapy.Field()
     world_revenue = scrapy.Field()

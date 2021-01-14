@@ -3,12 +3,11 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 
-
 # useful for handling different item types with a single interface
-from itemadapter import ItemAdapter
 import csv
 
-class BoxofficeScrapyPipeline:
+
+class BoxofficeScrapyPipeline(object):
     def __init__(self):
         self.csvwriter = csv.writer(open("boxoffice2019_2020.csv", "w", newline=''))
         self.csvwriter.writerow(["title", "domestic_revenue", "world_revenue", "distributor", "opening_revenue", "opening_theaters", "budget", "MPAA", "genres", "release_days"])
