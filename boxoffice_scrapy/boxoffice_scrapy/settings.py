@@ -63,8 +63,8 @@ DOWNLOAD_DELAY = 1
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    'boxoffice_scrapy.pipelines.BoxofficeScrapyPipeline': 300,
-    'boxoffice_scrapy.pipelines.RtPipeline': 300,
+    'boxoffice_scrapy.pipelines.mojo_spiderPipeline': 300,
+    #'boxoffice_scrapy.pipelines.RtPipeline': 300,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
