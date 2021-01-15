@@ -6,30 +6,58 @@ class mojo_spider(scrapy.Spider):
     name = "mojo_spider"
     allowed_domains = ["boxofficemojo.com"]
     start_urls = [
+      "https://www.boxofficemojo.com/year/2017/",
+      "https://www.boxofficemojo.com/year/2018/",
       "https://www.boxofficemojo.com/year/2019/",
       "https://www.boxofficemojo.com/year/2020/"
     ]
+    #note: 2017, 2018, 2019 have ~800  rows
+    #note: 2020 is limiting @ 454
 
-    for year in [2020]:
+    for year in [2017, 2018, 2019, 2020]:
         start_urls.append("https://www.boxofficemojo.com/year/"+str(year)+"/")
 
     def parse(self, response):
-        for tr in response.xpath('//*[@id="table"]/div/table/tr')[1:454]:
+        for tr in response.xpath('//*[@id="table"]/div/table/tr')[1:450]:
             href = tr.xpath('./td[2]/a/@href')
             url = response.urljoin(href[0].extract())
-            yield scrapy.Request(url, callback=self.parse_page_contents)
+            try:
+                yield scrapy.Request(url, callback=self.parse_page_contents)
+            except IndexError as ie:
+                print("Ignoring error in '{}': '{}'.".format(url, ie))
 
     def parse_page_contents(self, response):
         item = BoxItem()
         elements = []
         for div in response.xpath('//*[@id="a-page"]/main/div/div[3]/div[4]/div')[0:]:
+            #sometimes MPAA or budgets or relase_days is not available
             elements.append(' '.join(div.xpath('./span[1]/text()')[0].extract().split()))
             if 'MPAA' in elements:
                 m = elements.index('MPAA') + 1
                 loc_MPAA = '//*[@id="a-page"]/main/div/div[3]/div[4]/div[{}]/span[2]/text()'.format(m)
                 item["MPAA"] = response.xpath(loc_MPAA)[0].extract()
+            if 'Budget' in elements:
+                y = elements.index('Budget') + 1
+                loc_budget = ('//*[@id="a-page"]/main/div/div[3]/div[4]/div[{}]/span[2]/span/text()').format(y)
+                item['budget'] = response.xpath(loc_budget)[0].extract()
+                #item['budget'] = response.xpath('//*[@id="a-page"]/main/div/div[3]/div[4]/div[3]/span[2]/span/text()')[0].extract()
+            if 'Release Date' in elements:
+                try:
+                    item['release_days'] = response.xpath('//*[@id="a-page"]/main/div/div[3]/div[4]/div[4]/span[2]/a/text()')[0].extract()
+                except IndexError:
+                    item['release_days'] = response.xpath('//*[@id="a-page"]/main/div/div[3]/div[4]/div[3]/span[2]/a/text()')[0].extract()
+                else:
+                    pass;
+                # except (IndexError, ValueError):
+                #     loc_releasedate = ('//*[@id="a-page"]/main/div/div[3]/div[4]/div[3]/span[2]/a/text()').format(z)
+                #     item['release_days'] = response.xpath(loc_releasedate)[0].extract()
+                    # option one: item['release_days'] = response.xpath('//*[@id="a-page"]/main/div/div[3]/div[4]/div[4]/span[2]/a/text()')[0].extract()
+                    # option two: item['release_days'] = response.xpath('//*[@id="a-page"]/main/div/div[3]/div[4]/div[3]/span[2]/a/text()')[0].extract()
             else:
                 item["MPAA"] = "N/A"
+                item['budget'] = 'N/A'
+                item['release_days'] = 'N/A'
+
 
         item['title'] = response.xpath('//*[@id="a-page"]/main/div/div[1]/div[1]/div/div/div[2]/h1/text()')[0].extract()
         item['domestic_revenue'] = response.xpath('//*[@id="a-page"]/main/div/div[3]/div[1]/div/div[1]/span[2]/span/text()')[0].extract()
@@ -37,9 +65,7 @@ class mojo_spider(scrapy.Spider):
         item['distributor'] = response.xpath('//*[@id="a-page"]/main/div/div[3]/div[4]/div[1]/span[2]/text()')[0].extract()
         item['opening_revenue'] = response.xpath('//*[@id="a-page"]/main/div/div[3]/div[4]/div[2]/span[2]/span/text()')[0].extract()
         item['opening_theaters'] = ' '.join(response.xpath('//*[@id="a-page"]/main/div/div[3]/div[4]/div[2]/span[2]/text()')[0].extract().split())
-        item['budget'] = response.xpath('//*[@id="a-page"]/main/div/div[3]/div[4]/div[3]/span[2]/span/text()')[0].extract()
         item['genres'] = ','.join(response.xpath('//*[@id="a-page"]/main/div/div[3]/div[4]/div[7]/span[2]/text()')[0].extract().split())
-        item['release_days'] = response.xpath('//*[@id="a-page"]/main/div/div[3]/div[4]/div[4]/span[2]/a/text()')[0].extract()
         yield item
 
 # import scrapy
