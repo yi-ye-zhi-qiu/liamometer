@@ -12,6 +12,13 @@ class BoxItem(scrapy.Item):
     genres = scrapy.Field()
     release_days = scrapy.Field()
 
+class HeirloomItem(scrapy.Item):
+    title = scrapy.Field()
+    criticscore = scrapy.Field()
+    criticcount = scrapy.Field()
+    audiencescore = scrapy.Field()
+
+
 class RtItem(scrapy.Item):
     title = scrapy.Field()
     criticscore = scrapy.Field()

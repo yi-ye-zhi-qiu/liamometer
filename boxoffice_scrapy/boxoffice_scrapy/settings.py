@@ -7,6 +7,13 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
+# from shutil import which
+#
+# SELENIUM_DRIVER_NAME = 'chrome'
+# SELENIUM_DRIVER_EXECUTABLE_PATH = which('geckodriver')
+# SELENIUM_DRIVER_ARGUMENTS=['--headless'] # '-headless' if using firefox instead of chrome
+
+
 BOT_NAME = 'boxoffice_scrapy'
 
 SPIDER_MODULES = ['boxoffice_scrapy.spiders']
@@ -53,6 +60,9 @@ DOWNLOAD_DELAY = 1
 #DOWNLOADER_MIDDLEWARES = {
 #    'boxoffice_scrapy.middlewares.BoxofficeScrapyDownloaderMiddleware': 543,
 #}
+# DOWNLOADER_MIDDLEWARES = {
+#     'scrapy_selenium.SeleniumMiddleware': 800
+# }
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
@@ -64,6 +74,7 @@ DOWNLOAD_DELAY = 1
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     'boxoffice_scrapy.pipelines.mojo_spiderPipeline': 300,
+    'boxoffice_scrapy.pipelines.heirloom_spiderPipelines': 300
     #'boxoffice_scrapy.pipelines.RtPipeline': 300,
 }
 

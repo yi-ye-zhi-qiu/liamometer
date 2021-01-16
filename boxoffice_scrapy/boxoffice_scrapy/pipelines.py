@@ -1,14 +1,41 @@
-from scrapy.exporters import CsvItemExporter
-
-import pprint
+# from scrapy.exporters import CsvItemExporter
+# import pprint
 import csv
-import colors
-from termcolor import colored
-import os
+# import os
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+class heirloom_spiderPipelines(object):
+
+    def __init__(self):
+        print(bcolors.OKBLUE + "Adding column names to heirloom csv" + bcolors.ENDC)
+        self.csvwriter = csv.writer(open("heirloom_macm1.csv", "w", newline=''))
+        self.csvwriter.writerow(["title", "criticscore", "criticcount", "audiencescore"])
+
+    def process_item(self, item, spider):
+        new_row = [
+            item["title"],
+            item["criticscore"],
+            item["criticcount"],
+            item["audiencescore"]
+        ]
+        self.csvwriter.writerow(new_row)
+        print(bcolors.OKBLUE + "Added " + row[0] + "to csv" + bcolors.ENDC)
+        return item
 
 class mojo_spiderPipeline(object):
     def __init__(self):
-        self.csvwriter = csv.writer(open("mojo.csv", "w", newline=''))
+        print(bcolors.OKBLUE + "Adding column names to mojo csv" + bcolors.ENDC)
+        self.csvwriter = csv.writer(open("mojo_macm1.csv", "w", newline=''))
         self.csvwriter.writerow(["title", "domestic_revenue", "world_revenue", "distributor", "opening_revenue", "opening_theaters", "budget", "MPAA", "genres", "release_days"])
 
     def process_item(self, item, spider):
@@ -24,7 +51,11 @@ class mojo_spiderPipeline(object):
         row.append(item["genres"])
         row.append(item["release_days"])
         self.csvwriter.writerow(row)
+        print(bcolors.OKBLUE + "Added "+row[0]+ " to csv" + bcolors.ENDC)
         return item
+
+    def close_spider(self, spider):
+        print(bcolors.OKBLUE + "Spider closed" + bcolors.ENDC)
 
 # class RtPipeline(object):
 #     def __init__(self):
