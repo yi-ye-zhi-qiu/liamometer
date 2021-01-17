@@ -17,10 +17,3 @@ class HeirloomItem(scrapy.Item):
     criticscore = scrapy.Field()
     criticcount = scrapy.Field()
     audiencescore = scrapy.Field()
-
-
-class RtItem(scrapy.Item):
-    title = scrapy.Field()
-    criticscore = scrapy.Field()
-    criticcount = scrapy.Field()
-    audiencescore = scrapy.Field()

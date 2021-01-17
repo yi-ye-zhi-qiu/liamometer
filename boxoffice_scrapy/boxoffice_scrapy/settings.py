@@ -7,11 +7,11 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
-# from shutil import which
-#
-# SELENIUM_DRIVER_NAME = 'chrome'
-# SELENIUM_DRIVER_EXECUTABLE_PATH = which('geckodriver')
-# SELENIUM_DRIVER_ARGUMENTS=['--headless'] # '-headless' if using firefox instead of chrome
+from shutil import which
+
+SELENIUM_DRIVER_NAME = 'chrome'
+SELENIUM_DRIVER_EXECUTABLE_PATH = '/usr/local/Caskroom/chromedriver/87.0.4280.88/chromedriver'
+SELENIUM_DRIVER_ARGUMENTS=['--headless'] # '-headless' if using firefox instead of chrome
 
 
 BOT_NAME = 'boxoffice_scrapy'
@@ -60,9 +60,12 @@ DOWNLOAD_DELAY = 1
 #DOWNLOADER_MIDDLEWARES = {
 #    'boxoffice_scrapy.middlewares.BoxofficeScrapyDownloaderMiddleware': 543,
 #}
-# DOWNLOADER_MIDDLEWARES = {
-#     'scrapy_selenium.SeleniumMiddleware': 800
-# }
+DOWNLOADER_MIDDLEWARES = {
+    'scrapy_selenium.SeleniumMiddleware': 800
+}
+
+#for testing - suppress "Dumping scrapy stats"
+STATS_DUMP = False
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
@@ -75,7 +78,6 @@ DOWNLOAD_DELAY = 1
 ITEM_PIPELINES = {
     'boxoffice_scrapy.pipelines.mojo_spiderPipeline': 300,
     'boxoffice_scrapy.pipelines.heirloom_spiderPipelines': 300
-    #'boxoffice_scrapy.pipelines.RtPipeline': 300,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

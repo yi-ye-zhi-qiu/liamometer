@@ -1,14 +1,30 @@
 #run: nohup scrapy crawl mojo_spider -o mojo_macm1.csv --logfile mojomac1.log & scrapy crawl heirloom_spider -o heirloom_macm1.csv --logfile heirloom_macm1.log
 import scrapy
 from ..items import BoxItem
-import selenium
+
+
 from selenium import webdriver
+from shutil import which
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.options import Options
+
+from scrapy_selenium import SeleniumRequest
+
 import time
 import traceback
-from scrapy_selenium import SeleniumRequest
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 class mojo_spider(scrapy.Spider):
     #FULLY FUNCTIONAL
@@ -24,7 +40,7 @@ class mojo_spider(scrapy.Spider):
       "https://www.boxofficemojo.com/year/2020/"
     ]
     #note: 2017, 2018, 2019 have ~800  rows
-    #note: 2020 is limiting @ 454
+    #note: 2020 is only @ 454 as of 16-Jan-2021
     for year in [2017, 2018, 2019, 2020]:
         start_urls.append("https://www.boxofficemojo.com/year/"+str(year)+"/")
     def parse(self, response):
@@ -37,7 +53,7 @@ class mojo_spider(scrapy.Spider):
             try:
                 yield scrapy.Request(url, callback=self.parse_page_contents)
             except IndexError as ie:
-                print("Ignoring error in '{}': '{}'.".format(url, ie))
+                print(bcolors.WARNING + "Ignoring error in '{}': '{}'.".format(url, ie) + bcolors.ENDC)
     def parse_page_contents(self, response):
         item = BoxItem()
 
@@ -93,151 +109,54 @@ class mojo_spider(scrapy.Spider):
         item['world_revenue'] = response.xpath('//*[@id="a-page"]/main/div/div[3]/div[1]/div/div[3]/span[2]/a/span/text()')[0].extract()
         yield item
 
+class heirloom_spider(scrapy.Spider):
+    name = "heirloom_spider"
+    custom_settings = {
+        'ITEM_PIPELINES': {'boxoffice_scrapy.pipelines.heirloom_spiderPipelines': 300}
+    }
+    allowed_domains = ["www.rottentomatoes.com"]
+    start_urls = ['https://www.rottentomatoes.com/']
 
-# class heirloom_spider(scrapy.Spider):
-#     name = "heirloom_spider"
-#     custom_settings = {
-#         'ITEM_PIPELINES': {'boxoffice_scrapy.pipelines.heirloom_spiderPipelines'}
-#     }
-#     allowed_domains = ["www.rottentomatoes.com"]
-#     start_urls = ['https://www.rottentomatoes.com']
-#     def parse(self, response):
-#         #for TESTING
-#         #for PRODUCTION
-#         #just read in mojo_csv after it's created in mojo_spider above
-#         # for tr in response.xpath('//*[@id="table"]/div/table/tr')[1:len(response.xpath('//*[@id="table"]/div/table/tr'))]:
-#         try:
-#             yield SeleniumRequest(url,
-#                                 callback=self.parse_page_contents,
-#                                 wait_time=5,
-#                                 #wait until navbar loads
-#                                 wait_until=EC.presence_of_element_located((By.XPATH,'//*[@id="navbar"]/search-algolia/search-algolia-controls/input')))
-#         except:
-#             print("Error in fetching Selenium request")
-#
-#     def parse_page_contents(self, response):
-#         print(response.request.meta['driver'].title)
-#         mojo_csv = ['Star Wars: Episode VIII - The Last Jedi']
-#
-#         elm = driver.find_element(By.XPATH,'//*[@id="navbar"]/search-algolia/search-algolia-controls/input')
-#         elm.clear()
-#
-#         for i in mojo_csv:
-#             #for each title search it
-#             elm.send_keys(i)
-#             try:
-#                 #find movie name
-#                 movie_name = browser.find_elements(By.XPATH, '//*[@id="main-page-content"]/div/section[1]/search-result-container//search-result[2]//ul/media-row[1]//li/div[2]/a')
-#                 #print result
-#                 print(movie_name)
-#             except:
-#                 print("Movie name not found")
-#             #wait 1 second
-#             time.sleep(1)
+    def start_requests(self):
+        print(bcolors.OKGREEN + "fetching SeleniumRequest for rottentomatoes ... this might take a few seconds" + bcolors.ENDC)
+        #for TESTING
+        #for PRODUCTION
+        #just read in mojo_csv after it's created in mojo_spider above
+        # for tr in response.xpath('//*[@id="table"]/div/table/tr')[1:len(response.xpath('//*[@id="table"]/div/table/tr'))]:
+        url='https://www.rottentomatoes.com/'
+        try:
+            yield SeleniumRequest(url=url,
+                                callback=self.parse_page_contents,
+                                wait_time=5,
+                                #wait until navbar loads
+                                wait_until=EC.presence_of_element_located((By.XPATH,'//*[@id="navbar"]/search-algolia/search-algolia-controls/input')))
+        except:
+            print(url)
+            print(bcolors.FAIL + "Error in fetching Selenium request" + bcolors.ENDC)
 
+    def parse_page_contents(self, response):
+        mojo_csv = ['Star Wars: Episode VIII - The Last Jedi', 'Murder on the Orient Express']
 
+        driver = response.request.meta['driver']
+        elm = driver.find_element(By.XPATH,'//*[@id="navbar"]/search-algolia/search-algolia-controls/input')
+        elm.clear()
 
-#
-# import scrapy
-# from scrapy import Spider, Selector
-# import random
-# import requests
-# import re
-# import math
-# import time
-# import colors
-# from termcolor import colored
-#
-#
-# class tomato_spider(scrapy.Spider):
-#     name = 'tomato_spider'
-#     allowed_domains = ['https://www.rottentomatoes.com']
-#     start_urls = ["https://www.rottentomatoes.com/top/bestofrt/top_100_action__adventure_movies/",
-#                   "https://www.rottentomatoes.com/top/bestofrt/top_100_animation_movies/",
-#                   "https://www.rottentomatoes.com/top/bestofrt/top_100_art_house__international_movies/",
-#                   "https://www.rottentomatoes.com/top/bestofrt/top_100_classics_movies/",
-#                   "https://www.rottentomatoes.com/top/bestofrt/top_100_comedy_movies/",
-#                   "https://www.rottentomatoes.com/top/bestofrt/top_100_documentary_movies/",
-#                   "https://www.rottentomatoes.com/top/bestofrt/top_100_drama_movies/",
-#                   "https://www.rottentomatoes.com/top/bestofrt/top_100_horror_movies/",
-#                   "https://www.rottentomatoes.com/top/bestofrt/top_100_kids__family_movies/",
-#                   "https://www.rottentomatoes.com/top/bestofrt/top_100_musical__performing_arts_movies/",
-#                   "https://www.rottentomatoes.com/top/bestofrt/top_100_mystery__suspense_movies/",
-#                   "https://www.rottentomatoes.com/top/bestofrt/top_100_romance_movies/",
-#                   "https://www.rottentomatoes.com/top/bestofrt/top_100_science_fiction__fantasy_movies/",
-#                   "https://www.rottentomatoes.com/top/bestofrt/top_100_special_interest_movies/",
-#                   "https://www.rottentomatoes.com/top/bestofrt/top_100_sports__fitness_movies/",
-#                   "https://www.rottentomatoes.com/top/bestofrt/top_100_television_movies/",
-#                   "https://www.rottentomatoes.com/top/bestofrt/top_100_western_movies/"]
-#
-#     soft_failures = 0
-#     hard_failures = 0
-#
-#     def parse(self, response):
-#         top100 = response.xpath('/html/body/div[4]/div[2]/div[1]/section/div/table//@href').extract()
-#
-#         for selector in top100:
-#             url = 'https://www.rottentomatoes.com' + selector
-#             try:
-#                 yield self.get_movieinfo(url)
-#             except IndexError as ie:
-#                 print("Ignoring error in '{}': '{}'.".format(url, ie))
-#
-#     @staticmethod
-#     def _get_content(link):
-#         """
-#         Politely request the page content at link.
-#         """
-#
-#         content = requests.get(link).text
-#
-#         x = 3 + 2 * random.random()
-#         time.sleep(x)
-#
-#         return content
-#
-#     def get_movieinfo(self, url):
-#         print("Getting movie info for '{}'".format(url))
-#
-#         content = tomato_spider._get_content(url)
-#
-#         def make_xpath(sibling_value):
-#             return '//div[@class="meta-label subtle" and text()="{}: "]/following-sibling::div/text()'.format(sibling_value)
-#
-#         def grab_data(name, my_xpath, force=False):
-#             def print_failures(is_hard):
-#                 print("\n{} fail to xpath '{}'!! '{}'. \nsoft fails: {}, hard_fails: {}\n".format(
-#                     "\tHARD" if is_hard else "Soft", name, my_xpath, self.soft_failures, self.hard_failures))
-#
-#             try:
-#                 return Selector(text=content).xpath(my_xpath)[0].extract().strip()
-#             except Exception as e:
-#                 if force:
-#                     self.soft_failures += 1
-#                     print_failures(False)
-#                     return None
-#
-#                 self.hard_failures += 1
-#                 print_failures(True)
-#                 raise e
-#
-#         return {
-#             "title": grab_data("title", '//h1[@class="mop-ratings-wrap__title mop-ratings-wrap__title--top"]/text()'),
-#             "criticscore": grab_data("criticscore", '//*[@id="tomato_meter_link"]/span[2]/text()'),
-#             "criticcount": grab_data("critic count", '//small[@class="mop-ratings-wrap__text--small"]/text()'),
-#             "audiencescore": grab_data("audiencescore", '//*[@id="topSection"]/div[2]/div[1]/section/section/div[2]/h2/a/span[2]/text()')
-#         }
-
-# # ------------ TESTING OUR SCRAPY: ------------
-#
-# #urls follow pattern of https://www.boxofficemojo.com/release/rl2708702721/?ref_=bo_yld_table_1
-# #use scrapy shell to debug w/out having to run the entire spider
-# #EXAMPLE:
-# scrapy shell "https://www.boxofficemojo.com/year/2017/"
-# #find xpath of each href
-# response.xpath('//*[@id="table"]/div/table/tr[2]/td[2]/a/@href')[0].extract()
-# #returns: '/release/rl1182631425/?ref_=bo_yld_table_1'
-# response.urljoin('/release/rl1182631425/?ref_=bo_yld_table_1')
-# #returns: 'https://www.boxofficemojo.com/release/rl2708702721/? ref_=bo_yld_table_1'
-#scrapy shell 'https://www.boxofficemojo.com/release/rl2708702721/? ref_=bo_yld_table_1'
-#response.xpath('') this is how you test if your xpath works without having to run the spider each time
+        for i in range(0, len(mojo_csv)+1):
+            #for each title search it
+            movie = mojo_csv[i]
+            elm.send_keys(mojo_csv)
+            try:
+                #find movie name
+                movie_name = driver.find_elements(By.XPATH, '//*[@id="main-page-content"]/div/section[1]/search-result-container//search-result[2]//ul/media-row[1]//li/div[2]/a')
+                #print result
+                print(bcolors.OKGREEN + "searched&found " + movie_name + bcolors.ENDC)
+            except:
+                print(bcolors.FAIL + "Movie name not found" + bcolors.ENDC)
+            #wait 1 second
+            return{
+                "title": movie_name,
+                "criticcount": "placeholder",
+                "criticscore": "placeholder",
+                "audiencescore": "placeholder"
+            }
+            time.sleep(1)

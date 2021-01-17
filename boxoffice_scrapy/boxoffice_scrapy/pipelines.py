@@ -1,7 +1,4 @@
-# from scrapy.exporters import CsvItemExporter
-# import pprint
 import csv
-# import os
 
 class bcolors:
     HEADER = '\033[95m'
@@ -17,24 +14,27 @@ class bcolors:
 class heirloom_spiderPipelines(object):
 
     def __init__(self):
-        print(bcolors.OKBLUE + "Adding column names to heirloom csv" + bcolors.ENDC)
+        print(bcolors.OKCYAN + "Adding column names to heirloom csv" + bcolors.ENDC)
         self.csvwriter = csv.writer(open("heirloom_macm1.csv", "w", newline=''))
         self.csvwriter.writerow(["title", "criticscore", "criticcount", "audiencescore"])
 
     def process_item(self, item, spider):
-        new_row = [
-            item["title"],
-            item["criticscore"],
-            item["criticcount"],
-            item["audiencescore"]
-        ]
-        self.csvwriter.writerow(new_row)
-        print(bcolors.OKBLUE + "Added " + row[0] + "to csv" + bcolors.ENDC)
+        row = []
+        row.append(item["title"])
+        row.append(item["criticscore"])
+        row.append(item["criticcount"])
+        row.append(item["audiencescore"])
+        self.csvwriter.writerow(row)
+        print(bcolors.OKCYAN + "Added " + row[0] + "to csv" + bcolors.ENDC)
         return item
 
+    def close_spider(self, spider):
+        print(bcolors.OKCYAN + " 🕷 Spider closed, 爬虫结束了！ 🕷" + bcolors.ENDC)
+
 class mojo_spiderPipeline(object):
+    #FULLY FUNCTIONAL
     def __init__(self):
-        print(bcolors.OKBLUE + "Adding column names to mojo csv" + bcolors.ENDC)
+        print(bcolors.OKCYAN + "Adding column names to mojo csv" + bcolors.ENDC)
         self.csvwriter = csv.writer(open("mojo_macm1.csv", "w", newline=''))
         self.csvwriter.writerow(["title", "domestic_revenue", "world_revenue", "distributor", "opening_revenue", "opening_theaters", "budget", "MPAA", "genres", "release_days"])
 
@@ -55,51 +55,4 @@ class mojo_spiderPipeline(object):
         return item
 
     def close_spider(self, spider):
-        print(bcolors.OKBLUE + "Spider closed" + bcolors.ENDC)
-
-# class RtPipeline(object):
-#     def __init__(self):
-#         self.filename = 'tomato.csv'
-#         print(colored("Adding column names to csv", "green"))
-#         self.items_processed = 0
-#
-#     def open_spider(self, spider):
-#         try:
-#             os.remove(self.filename)
-#             print("Cleared existing csv file.")
-#         except OSError:
-#             print("{} does not exist, creating.".format(self.filename))
-#
-#         writer = csv.writer(open(self.filename, 'a+'))
-#         writer.writerow(["title", "criticscore", "criticcount", "audiencescore"])
-#
-#         print("Wrote column names to csv.")
-#
-#         self.csvfile = open(self.filename, 'wb')
-#         self.exporter = CsvItemExporter(self.csvfile)
-#         self.exporter.start_exporting()
-#
-#         print(colored("Opening spider", "green"))
-#
-#     def close_spider(self, spider):
-#         self.exporter.finish_exporting()
-#         self.csvfile.close()
-#
-#         print(colored("Closing spider", "green"))
-#
-#     def process_item(self, item, spider):
-#
-#         new_row = [
-#             item["title"],
-#             item["criticscore"],
-#             item["criticcount"],
-#             item["audiencescore"]
-#         ]
-#
-#         writer = csv.writer(open(self.filename, "a+"))
-#         writer.writerow(new_row)
-#
-#         self.items_processed += 1
-#
-#         print(colored("Added row {}: '{}'".format(self.items_processed, new_row), "red"))
-#         return item
+        print(bcolors.OKCYAN + " 🕷 Spider closed， 爬虫结束了！  🕷" + bcolors.ENDC)
