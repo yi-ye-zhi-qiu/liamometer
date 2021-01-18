@@ -1,6 +1,7 @@
 #run: nohup scrapy crawl mojo_spider -o mojo_macm1.csv --logfile mojomac1.log & scrapy crawl heirloom_spider -o heirloom_macm1.csv --logfile heirloom_macm1.log
 #for each spider run: scrapy crawl mojo_spider -L WARN  for clean output
 #or: scrapy crawl heirloom_spider -L WARN               for clean output
+#models listed in order they are used
 import scrapy
 from ..items import BoxItem, bcolors
 import csv
@@ -8,6 +9,7 @@ import json
 from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
 from pprint import pprint
+import re
 
 class mojo_spider(scrapy.Spider):
     #FULLY FUNCTIONAL, runtime 1.5 hr
@@ -96,7 +98,8 @@ class mojo_spider(scrapy.Spider):
         yield item
 
 class heirloom_spider(scrapy.Spider):
-    #MVP functional (missing count of how MANY critic/audience scores)
+    #MVP functional (missing count of how MANY critic/audience scores) 50/min.
+    #runtime 1.5 hr.
     name = "heirloom_spider"
     custom_settings = {
         'ITEM_PIPELINES': {'boxoffice_scrapy.pipelines.heirloom_spiderPipelines': 300}
@@ -170,4 +173,98 @@ class heirloom_spider(scrapy.Spider):
             'criticcount': 'placeholder',
             'audiencescore': audiencescore
         }
-        time.sleep(1)
+        #we avoid time.sleep because it blocks Twisted reactor & eliminates Scrapy's concurrency advantage
+
+class budget_spider(scrapy.Spider):
+    #FULLY FUNCTIONAL
+    #SLOWER because the-numbers.com (we use to fetch budgets) has stricter restrictions on scraping
+    #we are forced to not only impersonate a user, but add-in download delays and autothrottle
+
+    #runtime: ___
+    name = "budget_spider"
+    custom_settings = {
+        'ITEM_PIPELINES': {'boxoffice_scrapy.pipelines.budget_spiderPipelines': 300}
+    }
+    allowed_domains = ["www.the-numbers.com"]
+    start_urls = ['https://www.the-numbers.com/']
+
+    def start_requests(self):
+        #define search request from mojo.csv title entries
+        #this runs almost instantly
+        with open('/Users/liamisaacs/Desktop/github repositories/metis-project2/boxoffice_scrapy/mojo.csv') as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            mojo_titles, row_title = [], []
+            for row in csv_reader:
+                #store row_title just to print out success message in terminal
+                row_title.append(row[0])
+
+                #the-numbers works better on searches without characters like ":" or "-"
+                row[0] = row[0].replace('-', ' ')
+                row[0] = row[0].replace('Episode', 'Ep')
+                row[0] = row[0].replace(':', ' ')
+
+                #example search string: https://www.the-numbers.com/custom-search?searchterm=star+wars+ep+VII+last+jedi
+
+                #search strings are just word+word+word
+                mojo_titles.append('+'.join(row[0].split()))
+
+        #NOTE: for TESTING only use 1-10 rows
+        mojo_titles = mojo_titles[1:15]
+
+        for i in mojo_titles:
+            #for each movie build url
+            url = 'https://www.the-numbers.com/custom-search?searchterm=' + i
+            print(bcolors.OKGREEN + bcolors.BOLD + "Requesting (1 of 2 steps) ==> " + bcolors.ENDC + url)
+            #NOTE: the-numbers will block you, so just pass in user-agent in settings.py
+            #NOTE: we pass row_title in meta tag, such that we can reference it in the next class
+            yield scrapy.Request(url=url, meta={'mojo_title': row_title[mojo_titles.index(i)+1]}, callback=self.parse)
+
+    def parse(self, response):
+        row_title = response.meta['mojo_title']
+        try:
+            link = 'https://www.the-numbers.com/' + response.xpath('//*[@id="page_filling_chart"]//tr//td//a/@href')[1].extract()
+            print(bcolors.OKGREEN + bcolors.BOLD + "Requesting (2 of 2 steps) ==> " + bcolors.ENDC + link)
+        #some movies on BoxOfficeMojo do not exist on the-numbers.com
+        #so we have to yield results in a try-except condition, where non-existent results are replaced w/ N/A
+            go_to_movie_link = scrapy.Request(url=link, callback=self.parse_each_movie, meta={'mojo_title': row_title, 'link': link})
+            return go_to_movie_link
+        except IndexError:
+            print(bcolors.WARNING + bcolors.BOLD + "Request (2 of 2 steps) ==> " + bcolors.ENDC + "failed (non-fatal), movie" + bcolors.UNDERLINE + row_title + bcolors.ENDC + "DNE in the-numbers.com database")
+            return{
+                'mojo_title': row_title,
+                'title': 'N/A',
+                'url': 'N/A',
+                'budget': 'N/A'
+            }
+
+    def parse_each_movie(self, response):
+        row_title = response.meta['mojo_title']
+        #title is invariably accurate, it will consistently be in the same spot
+        title = response.xpath('//*[@id="main"]/div/h1/text()')[0].extract()
+        link = response.meta['link']
+
+        #for not wellknown movies, such as the remake of 1955 Senso (https://www.the-numbers.com/custom-search?searchterm=Senso)
+        #there is no production budget, for this situation we just enter "N/A"
+        #NOTE: this is assuming table is consistently ordered for movies that have budgets...
+
+        #budget has to be "smart-searched", its position on the page is highly inconsistent
+        elements = []
+        #grab all elements present on page in table
+        for i in range(0, len(response.xpath('//*[@id="summary"]//table//tr//td//b/text()'))-1):
+            elements.append(''.join(response.xpath('//*[@id="summary"]//table//tr//td//b/text()')[i].extract().replace('\xa0', ' ')))
+        #just examine production budget, wherever it appears on the page (messy)
+        if 'Production Budget:' in elements:
+            m = elements.index('Production Budget:')
+            loc_budget = ('//*[@id="summary"]/table/tr[{}]/td[2]').format(m+1)
+            budget = response.xpath(loc_budget)[0].extract()
+            no_td_tags = re.compile('<.*?>')
+            budget = re.sub(no_td_tags, '', budget)
+            budget = budget.split('(')[0]
+        else:
+            budget = 'N/A'
+        return {
+            'mojo_title': row_title,
+            'title': title,
+            'url': link,
+            'budget': budget
+        }

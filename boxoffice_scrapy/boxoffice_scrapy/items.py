@@ -24,6 +24,13 @@ class HeirloomItem(scrapy.Item):
     criticcount = scrapy.Field()
     audiencescore = scrapy.Field()
 
+#for the-numbers.com, a site used to fetch budget
+class BudgetItem(scrapy.Item):
+    mojo_title = scrapy.Field()
+    budget_site_title = scrapy.Field()
+    budget = scrapy.Field()
+    url = scrapy.Field()
+
 #for coloring terminal text:
 class bcolors:
     HEADER = '\033[95m'

@@ -1,11 +1,34 @@
 import csv
 from .items import bcolors
 
+class budget_spiderPipelines(object):
+
+    def __init__(self):
+        print(bcolors.OKGREEN + bcolors.BOLD + "Writing ==>" + bcolors.ENDC + "boxoffice_scrapy/budget.csv")
+        self.csvwriter = csv.writer(open("budget.csv", "w", newline=''))
+        self.csvwriter.writerow(["mojo_title", "title", "budget", "url"])
+
+    def process_item(self, item, spider):
+        row = []
+        row.append(item["mojo_title"])
+        row.append(item["title"])
+        row.append(item["budget"])
+        row.append(item["url"])
+        self.csvwriter.writerow(row)
+        print(bcolors.OKGREEN + bcolors.BOLD + "Added to csv ==>" + bcolors.ENDC + row[0])
+        return item
+
+    def close_spider(self, spider):
+        print(bcolors.OKGREEN + bcolors.BOLD + "Done ==>" + bcolors.ENDC + " Dumped data into boxoffice_scrapy/budget.csv")
+
+
+
+
 class heirloom_spiderPipelines(object):
 
     def __init__(self):
-        print(bcolors.OKGREEN + bcolors.BOLD + "Writing ==>" + bcolors.ENDC + "boxoffice_scrapy/heirloom_macm1.csv")
-        self.csvwriter = csv.writer(open("heirloom_macm1.csv", "w", newline=''))
+        print(bcolors.OKGREEN + bcolors.BOLD + "Writing ==>" + bcolors.ENDC + "boxoffice_scrapy/heirloom.csv")
+        self.csvwriter = csv.writer(open("heirloom.csv", "w", newline=''))
         self.csvwriter.writerow(["url", "title", "criticscore", "criticcount", "audiencescore"])
 
     def process_item(self, item, spider):
@@ -26,7 +49,7 @@ class heirloom_spiderPipelines(object):
 class mojo_spiderPipeline(object):
     #FULLY FUNCTIONAL
     def __init__(self):
-        print(bcolors.OKGREEN + bcolors.BOLD + "Writing ==>" + bcolors.ENDC + "boxoffice_scrapy/mojo_macm1.csv")
+        print(bcolors.OKGREEN + bcolors.BOLD + "Writing ==>" + bcolors.ENDC + "boxoffice_scrapy/mojo.csv")
         self.csvwriter = csv.writer(open("mojo_macm1.csv", "w", newline=''))
         self.csvwriter.writerow(["title", "domestic_revenue", "world_revenue", "distributor", "opening_revenue", "opening_theaters", "budget", "MPAA", "genres", "release_days"])
         #this one takes 1-2 seconds to start-up, so I include this..
