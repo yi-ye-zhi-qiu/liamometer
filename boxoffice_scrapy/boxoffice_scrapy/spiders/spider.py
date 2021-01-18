@@ -1,19 +1,13 @@
 #run: nohup scrapy crawl mojo_spider -o mojo_macm1.csv --logfile mojomac1.log & scrapy crawl heirloom_spider -o heirloom_macm1.csv --logfile heirloom_macm1.log
+#for each spider run: scrapy crawl mojo_spider -L WARN  for clean output
+#or: scrapy crawl heirloom_spider -L WARN               for clean output
 import scrapy
 from ..items import BoxItem
-
-
-from selenium import webdriver
-from shutil import which
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.options import Options
-
-from scrapy_selenium import SeleniumRequest
-
-import time
-import traceback
+import csv
+from scrapy_splash import SplashRequest
+import re
+import json
+from pprint import pprint
 
 class bcolors:
     HEADER = '\033[95m'
@@ -27,7 +21,7 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 class mojo_spider(scrapy.Spider):
-    #FULLY FUNCTIONAL
+    #FULLY FUNCTIONAL, runtime 1.5 hr
     name = "mojo_spider"
     custom_settings = {
         'ITEM_PIPELINES': {'boxoffice_scrapy.pipelines.mojo_spiderPipeline': 300},
@@ -118,45 +112,43 @@ class heirloom_spider(scrapy.Spider):
     start_urls = ['https://www.rottentomatoes.com/']
 
     def start_requests(self):
-        print(bcolors.OKGREEN + "fetching SeleniumRequest for rottentomatoes ... this might take a few seconds" + bcolors.ENDC)
+        #define search request from mojo.csv title entries
+        #this runs almost instantly
+        with open('/Users/liamisaacs/Desktop/github repositories/metis-project2/boxoffice_scrapy/mojo.csv') as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            line_count = 0
+            mojo_titles = []
+            for row in csv_reader:
+                #rotten tomatoes replaces : with 3A
+                row[0] = row[0].replace(':', '%3A')
+                #search strings are just each word followed by %20
+                mojo_titles.append('%20'.join(row[0].split(' ')))
+
         #for TESTING
-        #for PRODUCTION
-        #just read in mojo_csv after it's created in mojo_spider above
-        # for tr in response.xpath('//*[@id="table"]/div/table/tr')[1:len(response.xpath('//*[@id="table"]/div/table/tr'))]:
-        url='https://www.rottentomatoes.com/'
-        try:
-            yield SeleniumRequest(url=url,
-                                callback=self.parse_page_contents,
-                                wait_time=5,
-                                #wait until navbar loads
-                                wait_until=EC.presence_of_element_located((By.XPATH,'//*[@id="navbar"]/search-algolia/search-algolia-controls/input')))
-        except:
-            print(url)
-            print(bcolors.FAIL + "Error in fetching Selenium request" + bcolors.ENDC)
+        mojo_titles = mojo_titles[1:2]
 
-    def parse_page_contents(self, response):
-        mojo_csv = ['Star Wars: Episode VIII - The Last Jedi', 'Murder on the Orient Express']
+        for i in mojo_titles:
+            #for each movie build url
+            url = 'https://www.rottentomatoes.com/search?search=' + i
+            print(bcolors.OKGREEN + bcolors.BOLD + "Requesting ==> " + bcolors.ENDC + url)
+            yield scrapy.Request(url=url, callback=self.parse)
 
-        driver = response.request.meta['driver']
-        elm = driver.find_element(By.XPATH,'//*[@id="navbar"]/search-algolia/search-algolia-controls/input')
-        elm.clear()
+    def parse(self, response):
 
-        for i in range(0, len(mojo_csv)+1):
-            #for each title search it
-            movie = mojo_csv[i]
-            elm.send_keys(mojo_csv)
-            try:
-                #find movie name
-                movie_name = driver.find_elements(By.XPATH, '//*[@id="main-page-content"]/div/section[1]/search-result-container//search-result[2]//ul/media-row[1]//li/div[2]/a')
-                #print result
-                print(bcolors.OKGREEN + "searched&found " + movie_name + bcolors.ENDC)
-            except:
-                print(bcolors.FAIL + "Movie name not found" + bcolors.ENDC)
-            #wait 1 second
-            return{
-                "title": movie_name,
-                "criticcount": "placeholder",
-                "criticscore": "placeholder",
-                "audiencescore": "placeholder"
-            }
-            time.sleep(1)
+        raw_json = response.xpath('//script[@id="movies-json"]/text()').get()
+        json_data = json.loads(raw_json)
+
+        #for learning, please uncomment the below two lines
+        #this shows you what the raw json is, what we parse
+        # print(bcolors.OKGREEN + bcolors.BOLD + "Raw json ==>" +bcolors.ENDC)
+        # pprint(json_data)
+
+        base_json = json_data["items"][0]
+
+        return {
+            'url': 'placeholder',
+            'title': base_json["name"],
+            'criticscore': base_json["tomatometerScore"]["score"],
+            'criticcount': 'placeholder',
+            'audiencescore': base_json["audienceScore"]["score"]
+        }

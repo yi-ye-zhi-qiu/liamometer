@@ -7,19 +7,31 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
-from shutil import which
-
-SELENIUM_DRIVER_NAME = 'chrome'
-SELENIUM_DRIVER_EXECUTABLE_PATH = '/usr/local/Caskroom/chromedriver/87.0.4280.88/chromedriver'
-SELENIUM_DRIVER_ARGUMENTS=['--headless'] # '-headless' if using firefox instead of chrome
-
-
 BOT_NAME = 'boxoffice_scrapy'
+
+#scrapy-selenium stuff
+# from shutil import which
+#
+# SELENIUM_DRIVER_NAME = 'chrome'
+# SELENIUM_DRIVER_EXECUTABLE_PATH = '/usr/local/Caskroom/chromedriver/87.0.4280.88/chromedriver'
+# SELENIUM_DRIVER_ARGUMENTS=['--headless'] # '-headless' if using firefox instead of chrome
+
+
+#scrapy-splash stuff
+SPLASH_URL = 'http://localhost:8050'
+SPIDER_MIDDLEWARES = {
+    'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
+}
 
 SPIDER_MODULES = ['boxoffice_scrapy.spiders']
 NEWSPIDER_MODULE = 'boxoffice_scrapy.spiders'
-
-
+DOWNLOADER_MIDDLEWARES = {
+    'scrapy_splash.SplashCookiesMiddleware': 723,
+    'scrapy_splash.SplashMiddleware': 725,
+    'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware': 810,
+}
+DUPEFILTER_CLASS = 'scrapy_splash.SplashAwareDupeFilter'
+HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'boxoffice_scrapy (+http://www.yourdomain.com)'
 
@@ -51,18 +63,13 @@ DOWNLOAD_DELAY = 1
 
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-#SPIDER_MIDDLEWARES = {
-#    'boxoffice_scrapy.middlewares.BoxofficeScrapySpiderMiddleware': 543,
-#}
+
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #DOWNLOADER_MIDDLEWARES = {
 #    'boxoffice_scrapy.middlewares.BoxofficeScrapyDownloaderMiddleware': 543,
 #}
-DOWNLOADER_MIDDLEWARES = {
-    'scrapy_selenium.SeleniumMiddleware': 800
-}
 
 #for testing - suppress "Dumping scrapy stats"
 STATS_DUMP = False
