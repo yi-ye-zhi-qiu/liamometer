@@ -4,10 +4,11 @@
 import scrapy
 from ..items import BoxItem
 import csv
-from scrapy_splash import SplashRequest
-import re
 import json
+from fuzzywuzzy import fuzz
+from fuzzywuzzy import process
 from pprint import pprint
+
 
 class bcolors:
     HEADER = '\033[95m'
@@ -116,37 +117,48 @@ class heirloom_spider(scrapy.Spider):
         #this runs almost instantly
         with open('/Users/liamisaacs/Desktop/github repositories/metis-project2/boxoffice_scrapy/mojo.csv') as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
-            line_count = 0
-            mojo_titles = []
+            mojo_titles, row_title = [], []
             for row in csv_reader:
                 #rotten tomatoes replaces : with 3A
+                row_title.append(row[0])
+
                 row[0] = row[0].replace(':', '%3A')
                 #search strings are just each word followed by %20
                 mojo_titles.append('%20'.join(row[0].split(' ')))
-
         #for TESTING
-        mojo_titles = mojo_titles[1:2]
+        mojo_titles = mojo_titles[1:10]
 
         for i in mojo_titles:
             #for each movie build url
+
             url = 'https://www.rottentomatoes.com/search?search=' + i
             print(bcolors.OKGREEN + bcolors.BOLD + "Requesting ==> " + bcolors.ENDC + url)
-            yield scrapy.Request(url=url, callback=self.parse)
+
+            #we pass row_title in meta tag, such that we can reference it in the next class
+            yield scrapy.Request(url=url, meta={'mojo_title': row_title[mojo_titles.index(i)+1]}, callback=self.parse)
 
     def parse(self, response):
 
         raw_json = response.xpath('//script[@id="movies-json"]/text()').get()
         json_data = json.loads(raw_json)
+        row_title = response.meta['mojo_title']
 
-        #for learning, please uncomment the below two lines
-        #this shows you what the raw json is, what we parse
+        #for learning, please uncomment the below two lines, they show you the raw JSON
         # print(bcolors.OKGREEN + bcolors.BOLD + "Raw json ==>" +bcolors.ENDC)
         # pprint(json_data)
 
-        base_json = json_data["items"][0]
+        #using fuzzy wuzzy token_sort_ratio to measure which search result is correct
+        new_ratio = 0
+        for i in range(0,len(json_data['items'])):
+            #ok to use N^2 complexity, as json['items'] tends to be only 2-10 items long
+            this_ratio = fuzz.token_sort_ratio(row_title, json_data["items"][i]["name"])
+            if new_ratio < this_ratio:
+                new_ratio = this_ratio
+                closest_row_title = i
 
+        base_json = json_data["items"][closest_row_title]
         return {
-            'url': 'placeholder',
+            'url': base_json["url"],
             'title': base_json["name"],
             'criticscore': base_json["tomatometerScore"]["score"],
             'criticcount': 'placeholder',
