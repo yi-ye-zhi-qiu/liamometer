@@ -2,24 +2,12 @@
 #for each spider run: scrapy crawl mojo_spider -L WARN  for clean output
 #or: scrapy crawl heirloom_spider -L WARN               for clean output
 import scrapy
-from ..items import BoxItem
+from ..items import BoxItem, bcolors
 import csv
 import json
 from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
 from pprint import pprint
-
-
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
 
 class mojo_spider(scrapy.Spider):
     #FULLY FUNCTIONAL, runtime 1.5 hr
@@ -39,6 +27,7 @@ class mojo_spider(scrapy.Spider):
     for year in [2017, 2018, 2019, 2020]:
         start_urls.append("https://www.boxofficemojo.com/year/"+str(year)+"/")
     def parse(self, response):
+
         #for TESTING
         for tr in response.xpath('//*[@id="table"]/div/table/tr')[1:2]:
         #for PRODUCTION
@@ -46,11 +35,13 @@ class mojo_spider(scrapy.Spider):
             href = tr.xpath('./td[2]/a/@href')
             url = response.urljoin(href[0].extract())
             try:
-                yield scrapy.Request(url, callback=self.parse_page_contents)
+                yield scrapy.Request(url, callback=self.parse_page_contents, meta={'mojo_url': url})
             except IndexError as ie:
                 print(bcolors.WARNING + "Ignoring error in '{}': '{}'.".format(url, ie) + bcolors.ENDC)
     def parse_page_contents(self, response):
         item = BoxItem()
+        url = response.meta['mojo_url']
+        print(bcolors.OKGREEN + bcolors.BOLD + "Requesting ==> " + bcolors.ENDC + str(url))
 
         elements = []
         for div in response.xpath('//*[@id="a-page"]/main/div/div[3]/div[4]/div')[0:]:
@@ -105,6 +96,7 @@ class mojo_spider(scrapy.Spider):
         yield item
 
 class heirloom_spider(scrapy.Spider):
+    #MVP functional (missing count of how MANY critic/audience scores)
     name = "heirloom_spider"
     custom_settings = {
         'ITEM_PIPELINES': {'boxoffice_scrapy.pipelines.heirloom_spiderPipelines': 300}
@@ -125,16 +117,16 @@ class heirloom_spider(scrapy.Spider):
                 row[0] = row[0].replace(':', '%3A')
                 #search strings are just each word followed by %20
                 mojo_titles.append('%20'.join(row[0].split(' ')))
-        #for TESTING
-        mojo_titles = mojo_titles[1:10]
+
+        #NOTE: for TESTING only use 1-10 rows
+        mojo_titles = mojo_titles[1:50]
 
         for i in mojo_titles:
             #for each movie build url
-
             url = 'https://www.rottentomatoes.com/search?search=' + i
             print(bcolors.OKGREEN + bcolors.BOLD + "Requesting ==> " + bcolors.ENDC + url)
 
-            #we pass row_title in meta tag, such that we can reference it in the next class
+            #NOTE: we pass row_title in meta tag, such that we can reference it in the next class
             yield scrapy.Request(url=url, meta={'mojo_title': row_title[mojo_titles.index(i)+1]}, callback=self.parse)
 
     def parse(self, response):
@@ -148,6 +140,8 @@ class heirloom_spider(scrapy.Spider):
         # pprint(json_data)
 
         #using fuzzy wuzzy token_sort_ratio to measure which search result is correct
+        #this will generaly be list index 0 since we trust rottentomatoes search
+        #algorithm, but this is just a quick double-check
         new_ratio = 0
         for i in range(0,len(json_data['items'])):
             #ok to use N^2 complexity, as json['items'] tends to be only 2-10 items long
@@ -156,11 +150,24 @@ class heirloom_spider(scrapy.Spider):
                 new_ratio = this_ratio
                 closest_row_title = i
 
-        base_json = json_data["items"][closest_row_title]
+        base_json = json_data["items"][0]
+
+        #critic or audience scores are often missing for non-rated (less popular) movies
+        try:
+            criticscore = base_json["tomatometerScore"]["score"]
+        except KeyError:
+            criticscore = "N/A"
+        try:
+            audiencescore = base_json["audienceScore"]["score"]
+        except KeyError:
+            audiencescore = "N/A"
+
         return {
+            'mojo_title': row_title,
             'url': base_json["url"],
             'title': base_json["name"],
-            'criticscore': base_json["tomatometerScore"]["score"],
+            'criticscore': criticscore,
             'criticcount': 'placeholder',
-            'audiencescore': base_json["audienceScore"]["score"]
+            'audiencescore': audiencescore
         }
+        time.sleep(1)

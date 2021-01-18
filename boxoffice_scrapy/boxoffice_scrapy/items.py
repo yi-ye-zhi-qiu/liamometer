@@ -1,5 +1,8 @@
 import scrapy
 
+#items ~= dictionaries in scrapy, the below dictionaries are used for data
+
+#for BoxOfficeMojo:
 class BoxItem(scrapy.Item):
     title = scrapy.Field()
     domestic_revenue = scrapy.Field()
@@ -12,9 +15,23 @@ class BoxItem(scrapy.Item):
     genres = scrapy.Field()
     release_days = scrapy.Field()
 
+#for RottenTomatoes:
 class HeirloomItem(scrapy.Item):
+    mojo_title = scrapy.Field()
     url = scrapy.Field()
     title = scrapy.Field()
     criticscore = scrapy.Field()
     criticcount = scrapy.Field()
     audiencescore = scrapy.Field()
+
+#for coloring terminal text:
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'

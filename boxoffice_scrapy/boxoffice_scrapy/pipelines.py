@@ -1,15 +1,5 @@
 import csv
-
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+from .items import bcolors
 
 class heirloom_spiderPipelines(object):
 
@@ -20,6 +10,7 @@ class heirloom_spiderPipelines(object):
 
     def process_item(self, item, spider):
         row = []
+        row.append(item["mojo_title"])
         row.append(item["url"])
         row.append(item["title"])
         row.append(item["criticscore"])
@@ -38,6 +29,8 @@ class mojo_spiderPipeline(object):
         print(bcolors.OKGREEN + bcolors.BOLD + "Writing ==>" + bcolors.ENDC + "boxoffice_scrapy/mojo_macm1.csv")
         self.csvwriter = csv.writer(open("mojo_macm1.csv", "w", newline=''))
         self.csvwriter.writerow(["title", "domestic_revenue", "world_revenue", "distributor", "opening_revenue", "opening_theaters", "budget", "MPAA", "genres", "release_days"])
+        #this one takes 1-2 seconds to start-up, so I include this..
+        print(bcolors.OKGREEN + bcolors.BOLD + "One second..." + bcolors.ENDC)
 
     def process_item(self, item, spider):
         row = []
@@ -52,8 +45,8 @@ class mojo_spiderPipeline(object):
         row.append(item["genres"])
         row.append(item["release_days"])
         self.csvwriter.writerow(row)
-        print(bcolors.OKGREEN + "Added to csv ==>" + bcolors.ENDC + row[0])
+        print(bcolors.OKGREEN + bcolors.BOLD + "Added to csv ==>" + bcolors.ENDC + row[0])
         return item
 
     def close_spider(self, spider):
-        print(bcolors.OKGREEN + "Done ==>" + bcolors.ENDC + "Dumped data into boxoffice_scrapy/mojo.csv")
+        print(bcolors.OKGREEN + bcolors.BOLD + "Done ==>" + bcolors.ENDC + "Dumped data into boxoffice_scrapy/mojo.csv")
