@@ -11,7 +11,8 @@ STATS_DUMP = False
 ITEM_PIPELINES = {
     'boxoffice_scrapy.pipelines.mojo_spiderPipeline': 100,
     'boxoffice_scrapy.pipelines.heirloom_spiderPipelines': 200,
-    'boxoffice_scrapy.pipelines.budget_spiderPipelines': 300
+    'boxoffice_scrapy.pipelines.budget_spiderPipelines': 300,
+    'boxoffice_scrapy.pipelines.metacritic_spiderPipelines': 400
 }
 
 #impersonate user with user_agent

@@ -1,7 +1,8 @@
 #run: nohup scrapy crawl mojo_spider -o mojo_macm1.csv --logfile mojomac1.log & scrapy crawl heirloom_spider -o heirloom_macm1.csv --logfile heirloom_macm1.log
-#for each spider run: scrapy crawl mojo_spider -L WARN  for clean output
-#or: scrapy crawl heirloom_spider -L WARN               for clean output
-#models listed in order they are used
+#for each spider run: scrapy crawl mojo_spider -L WARN                   for clean output
+#                     scrapy crawl heirloom_spider -L WARN               for clean output
+#                     scrapy crawl budget_spider -L WARN                 for clean output
+#libraries listed in order they are used
 import scrapy
 from ..items import BoxItem, bcolors
 import csv
@@ -130,7 +131,7 @@ class heirloom_spider(scrapy.Spider):
             print(bcolors.OKGREEN + bcolors.BOLD + "Requesting ==> " + bcolors.ENDC + url)
 
             #NOTE: we pass row_title in meta tag, such that we can reference it in the next class
-            yield scrapy.Request(url=url, meta={'mojo_title': row_title[mojo_titles.index(i)+1]}, callback=self.parse)
+            yield scrapy.Request(url=url, meta={'mojo_title': row_title[mojo_titles.index(i)]}, callback=self.parse)
 
     def parse(self, response):
 
@@ -267,4 +268,58 @@ class budget_spider(scrapy.Spider):
             'title': title,
             'url': link,
             'budget': budget
+        }
+
+class metacritic_spider(scrapy.Spider):
+    name = "metacritic_spider"
+    custom_settings = {
+        'ITEM_PIPELINES': {'boxoffice_scrapy.pipelines.metacritic_spiderPipelines': 300},
+    }
+    allowed_domains = ["metacritic.com"]
+
+    def start_requests(self):
+
+        with open('/Users/liamisaacs/Desktop/github repositories/metis-project2/boxoffice_scrapy/mojo.csv') as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            mojo_titles, row_title = [], []
+            for row in csv_reader:
+                #rotten tomatoes replaces : with 3A
+                row_title.append(row[0])
+
+                row[0] = row[0].lower()
+                row[0] = row[0].replace(':', '')
+                #search strings are just each word followed by %20
+                mojo_titles.append('-'.join(row[0].split(' ')))
+
+        #NOTE: for TESTING only use 1-10 rows
+        mojo_titles = mojo_titles[1:10]
+
+        for i in mojo_titles:
+            #for each movie build url
+            try:
+                url = 'https://www.metacritic.com/movie/' + i
+                print(bcolors.OKGREEN + bcolors.BOLD + "Requesting ==> " + bcolors.ENDC + url)
+                #NOTE: we pass row_title in meta tag, such that we can reference it in the next class
+                yield scrapy.Request(url=url, meta={'mojo_title': row_title[mojo_titles.index(i)+1]}, callback=self.parse)
+            except:
+                print(bcolors.WARNING + bcolors.BOLD + "Soft failure ==> " + bcolors.ENDC + "movie DNE or name mis-match for " + bcolors.UNDERLINE + row_title[i])
+
+    def parse(self, response):
+        mojo_title = response.meta['mojo_title']
+        criticscore = response.xpath('//*[@id="main_content"]//table//tr//td//a/span/text()')[2].extract()
+        # no_tags = re.compile('<.*?>')
+        # critcscore = re.sub(no_tags, '', criticscore)
+        criticcount = response.xpath('//*[@id="main_content"]//table//tr//td//a/span/text()')[1].extract()
+        criticcount = re.findall(r"\d+", criticcount)[0]
+
+        audiencescore = response.xpath('//*[@id="main_content"]//table//tr//td//table//tr//td//a/span/text()')[2].extract()
+        audiencecount = response.xpath('//*[@id="main_content"]//table//tr//td//a/span/text()')[4].extract()
+        audiencecount = re.findall(r"\d+", audiencecount)[0]
+
+        return{
+            'mojo_title': mojo_title,
+            'criticscore': criticscore,
+            'criticcount': criticcount,
+            'audiencescore': audiencescore,
+            'audiencecount': audiencecount
         }

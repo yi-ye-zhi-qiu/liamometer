@@ -31,6 +31,13 @@ class BudgetItem(scrapy.Item):
     budget = scrapy.Field()
     url = scrapy.Field()
 
+class MetacriticItem(scrapy.Item):
+    mojo_title = scrapy.Field()
+    criticscore = scrapy.Field()
+    criticcount = scrapy.Field()
+    audiencescore = scrapy.Field()
+    audiencecouny = scrapy.Field()
+
 #for coloring terminal text:
 class bcolors:
     HEADER = '\033[95m'

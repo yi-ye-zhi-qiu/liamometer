@@ -21,8 +21,25 @@ class budget_spiderPipelines(object):
     def close_spider(self, spider):
         print(bcolors.OKGREEN + bcolors.BOLD + "Done ==>" + bcolors.ENDC + " Dumped data into boxoffice_scrapy/budget.csv")
 
+class metacritic_spiderPipelines(object):
 
+    def __init__(self):
+        print(bcolors.OKGREEN + bcolors.BOLD + "Writing ==>" + bcolors.ENDC + "boxoffice_scrapy/metacritic.csv")
+        self.csvwriter = csv.writer(open("metacritic.csv", "w", newline=''))
+        self.csvwriter.writerow(["mojo_title", "criticscore", "criticcount", "audiencescore", "audiencecount"])
 
+    def process_item(self, item, spider):
+        row = []
+        row.append(item["mojo_title"])
+        row.append(item["criticscore"])
+        row.append(item["criticcount"])
+        row.append(item["audiencescore"])
+        row.append(item["audiencecount"])
+        self.csvwriter.writerow(row)
+        print(bcolors.OKGREEN + bcolors.BOLD + "Added to csv ==> " + bcolors.ENDC + row[0])
+        
+    def close_spider(self,spider):
+        print(bcolors.OKGREEN + bcolors.BOLD + "Done ==>" + bcolors.ENDC + " Dumped data into boxofficescrapy/metacritic.csv")
 
 class heirloom_spiderPipelines(object):
 
