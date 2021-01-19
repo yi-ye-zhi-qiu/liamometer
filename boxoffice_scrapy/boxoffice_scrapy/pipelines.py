@@ -21,6 +21,27 @@ class budget_spiderPipelines(object):
     def close_spider(self, spider):
         print(bcolors.OKGREEN + bcolors.BOLD + "Done ==>" + bcolors.ENDC + " Dumped data into boxoffice_scrapy/budget.csv")
 
+class imdb_spiderPipelines(object):
+
+    def __init__(self):
+        print(bcolors.OKGREEN + bcolors.BOLD + "Writing ==>" + bcolors.ENDC + "boxoffice_scrapy/imdb.csv")
+        self.csvwriter = csv.writer(open("imdb.csv", "w", newline=''))
+        self.csvwriter.writerow(["mojo_title", "imdbpicture", "imdbscore", "imdbcount", "metafromimdb"])
+
+    def process_item(self, item, spider):
+        row = []
+        row.append(item["mojo_title"])
+        row.append(item["imdbpicture"])
+        row.append(item["imdbscore"])
+        row.append(item["imdbcount"])
+        row.append(item["metafromimdb"])
+        self.csvwriter.writerow(row)
+        print(bcolors.OKGREEN + bcolors.BOLD + "Added to csv ==> " + bcolors.ENDC + row[0])
+        return item
+
+    def close_spider(self, spider):
+        print(bcolors.OKGREEN + bcolors.BOLD + "Done ==>" + bcolors.ENDC + " Dumped data into boxoffice_scrapy/imdb.csv")
+
 class metacritic_spiderPipelines(object):
 
     def __init__(self):
@@ -37,7 +58,8 @@ class metacritic_spiderPipelines(object):
         row.append(item["audiencecount"])
         self.csvwriter.writerow(row)
         print(bcolors.OKGREEN + bcolors.BOLD + "Added to csv ==> " + bcolors.ENDC + row[0])
-        
+        return item
+
     def close_spider(self,spider):
         print(bcolors.OKGREEN + bcolors.BOLD + "Done ==>" + bcolors.ENDC + " Dumped data into boxofficescrapy/metacritic.csv")
 

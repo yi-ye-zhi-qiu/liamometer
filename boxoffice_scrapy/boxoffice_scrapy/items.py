@@ -38,6 +38,13 @@ class MetacriticItem(scrapy.Item):
     audiencescore = scrapy.Field()
     audiencecouny = scrapy.Field()
 
+class IMDBItem(scrapy.Item):
+    mojo_title = scrapy.Field()
+    imdbpicture = scrapy.Field()
+    imdbscore = scrapy.Field()
+    imdbcount = scrapy.Field()
+    metafromimdb = scrapy.Field()
+
 #for coloring terminal text:
 class bcolors:
     HEADER = '\033[95m'
