@@ -11,6 +11,9 @@ from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
 from pprint import pprint
 import re
+from scrapy.spiders import CrawlSpider, Rule
+from scrapy.linkextractors import LinkExtractor
+
 
 class mojo_spider(scrapy.Spider):
     #FULLY FUNCTIONAL, runtime 1.5 hr
@@ -306,15 +309,25 @@ class metacritic_spider(scrapy.Spider):
 
     def parse(self, response):
         mojo_title = response.meta['mojo_title']
-        criticscore = response.xpath('//*[@id="main_content"]//table//tr//td//a/span/text()')[2].extract()
-        # no_tags = re.compile('<.*?>')
-        # critcscore = re.sub(no_tags, '', criticscore)
-        criticcount = response.xpath('//*[@id="main_content"]//table//tr//td//a/span/text()')[1].extract()
-        criticcount = re.findall(r"\d+", criticcount)[0]
-
-        audiencescore = response.xpath('//*[@id="main_content"]//table//tr//td//table//tr//td//a/span/text()')[2].extract()
-        audiencecount = response.xpath('//*[@id="main_content"]//table//tr//td//a/span/text()')[4].extract()
-        audiencecount = re.findall(r"\d+", audiencecount)[0]
+        try:
+            criticscore = response.xpath('//*[@id="main_content"]//table//tr//td//a/span/text()')[2].extract()
+            # no_tags = re.compile('<.*?>')
+            # critcscore = re.sub(no_tags, '', criticscore)
+            if criticscore != 'No score yet':
+                criticcount = response.xpath('//*[@id="main_content"]//table//tr//td//a/span/text()')[1].extract()
+                criticcount = re.findall(r"\d+", criticcount)[0]
+            else:
+                criticcount = 'N/A'
+            audiencescore = response.xpath('//*[@id="main_content"]//table//tr//td//table//tr//td//a/span/text()')[5].extract()
+            if audiencescore != 'No score yet':
+                audiencecount = response.xpath('//*[@id="main_content"]//table//tr//td//a/span/text()')[4].extract()
+                audiencecount = re.findall(r"\d+", audiencecount)[0]
+        except IndexError:
+            print(bcolors.WARNING + bcolors.BOLD + "Soft failure ==> " + bcolors.ENDC + "movie DNE or name mis-match for " + bcolors.UNDERLINE + mojo_title)
+            criticscore = 'Link error'
+            criticcount = 'Link error'
+            audiencescore = 'Link error'
+            audiencecount = 'Link error'
 
         return{
             'mojo_title': mojo_title,
@@ -322,4 +335,64 @@ class metacritic_spider(scrapy.Spider):
             'criticcount': criticcount,
             'audiencescore': audiencescore,
             'audiencecount': audiencecount
+        }
+
+SEARCH_QUERY = (
+    'https://www.imdb.com/search/title?'
+    'title_type=feature&'
+    'user_rating=1.0,10.0&'
+    'countries=us&'
+    'languages=en&'
+    'count=250&'
+    'view=simple'
+)
+
+class imdb_spider(scrapy.Spider):
+    name = "imdb_spider"
+    custom_settings = {
+        'ITEM_PIPELINES': {'boxoffice_scrapy.pipelines.imdb_spiderPipelines': 300},
+    }
+    allowed_domains = ["imdb.com"]
+    def start_requests(self):
+
+        with open('/Users/liamisaacs/Desktop/github repositories/metis-project2/boxoffice_scrapy/mojo.csv') as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            mojo_titles, row_title = [], []
+            for row in csv_reader:
+                row_title.append(row[0])
+                row[0] = row[0].replace(':', '%3A')
+                mojo_titles.append('+'.join(row[0].split(' ')))
+
+        #NOTE: for TESTING only use 1-10 rows
+        mojo_titles = mojo_titles[1:15]
+
+        for i in mojo_titles:
+            #for each movie build url
+            try:
+                url = 'https://www.imdb.com/search/title/?title=' + i
+                print(bcolors.OKGREEN + bcolors.BOLD + "Requesting ==> " + bcolors.ENDC + url)
+                #NOTE: we pass row_title in meta tag, such that we can reference it in the next class
+                yield scrapy.Request(url=url, meta={'mojo_title': row_title[mojo_titles.index(i)+1]}, callback=self.parse)
+            except:
+                print(bcolors.WARNING + bcolors.BOLD + "Soft failure ==> " + bcolors.ENDC + "movie DNE or name mis-match for " + bcolors.UNDERLINE + row_title[i])
+
+    def parse(self, response):
+        row_title = response.meta['mojo_title']
+        try:
+            imdbpicture = response.xpath('//*[@id="main"]/div/div[3]/div/div[1]/div[2]/a/img/@loadlate')[0].extract()
+            imdbscore = response.xpath('//*[@id="main"]/div/div[3]/div/div[1]/div[3]/div/div[1]/strong/text()')[0].extract()
+            imdbcount = response.xpath('//*[@id="main"]/div/div[3]/div/div[1]/div[3]/p[4]/span[2]/text()')[0].extract()
+            metafromimdb = response.xpath('//*[@id="main"]/div/div[3]/div/div[1]/div[3]/div/div[3]/span/text()')[0].extract().strip()
+        except IndexError:
+            print(bcolors.WARNING + bcolors.BOLD + "Soft failure ==> " + bcolors.ENDC + "movie DNE or name mis-match for " + bcolors.UNDERLINE + row_title)
+            imdbscore = 'Link error'
+            imdbcount = 'Link error'
+            metafromimdb = 'Link error'
+
+        return{
+            'mojo_title': row_title,
+            'imdbpicture': imdbpicture,
+            'imdbscore': imdbscore,
+            'imdbcount': imdbcount,
+            'metafromimdb': metafromimdb
         }
