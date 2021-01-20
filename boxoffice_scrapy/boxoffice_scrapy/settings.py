@@ -8,19 +8,23 @@ ROBOTSTXT_OBEY = False
 STATS_DUMP = False
 
 #goes 100->200->300
-ITEM_PIPELINES = {
-    'boxoffice_scrapy.pipelines.mojo_spiderPipeline': 100,
-    'boxoffice_scrapy.pipelines.heirloom_spiderPipelines': 200,
-    'boxoffice_scrapy.pipelines.budget_spiderPipelines': 300,
-    'boxoffice_scrapy.pipelines.metacritic_spiderPipelines': 400
-}
+# ITEM_PIPELINES = {
+#     'boxoffice_scrapy.pipelines.mojo_spiderPipeline': 100,
+#     'boxoffice_scrapy.pipelines.heirloom_spiderPipelines': 200,
+#     'boxoffice_scrapy.pipelines.budget_spiderPipelines': 300,
+#     'boxoffice_scrapy.pipelines.metacritic_spiderPipelines': 400
+# }
+HTTPERROR_ALLOWED_CODES  =[404]
 
 #impersonate user with user_agent
-USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'
 
 #identify as common browser, add in delays (slow down scraping)
 CONCURRENT_REQUESTS = 1
-DOWNLOAD_DELAY = 1
+DOWNLOAD_DELAY = 5
 
 #create somewhat realistic browsing pattern
 AUTOTHROTTLE_ENABLED = True
+
+from boxoffice_scrapy.utils import get_random_agent
+
+USER_AGENT = get_random_agent()

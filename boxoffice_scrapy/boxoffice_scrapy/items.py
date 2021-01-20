@@ -31,6 +31,13 @@ class BudgetItem(scrapy.Item):
     budget = scrapy.Field()
     url = scrapy.Field()
 
+class TomatoItem(scrapy.Item):
+    mojo_title = scrapy.Field()
+    url = scrapy.Field()
+    tomato_criticcount = scrapy.Field()
+    tomato_audiencecount = scrapy.Field()
+    tomato_image = scrapy.Field()
+
 class MetacriticItem(scrapy.Item):
     mojo_title = scrapy.Field()
     criticscore = scrapy.Field()

@@ -1,53 +1,21 @@
-"""
-Use scikit-learn, google NLP API, to model the data.
-"""
+# BoxOfficeMojo, Metacritic, IMDB, RottenTomatoes, and the-numbers data
 
-"""
-Based on past behavior? Something your friends like?
+import pandas as pd
+#5 data sources, summing up to hopefully ~3k for all movies 2016-2020
 
-Given a set of people -- match --> item
+mojo_df = pd.read_csv('boxoffice_scrapy/mojo_macm1.csv', index_col=[0])
+metacritic_df = pd.read_csv('boxoffice_scrapy/metacritic.csv', index_col=[0])
+imdb_df = pd.read_csv('boxoffice_scrapy/imdb.csv', index_col=[0])
+rottentomatoes_df = pd.read_csv('boxoffice_scrapy/heirloom.csv', index_col=[0])
+budget_df = pd.read_csv('boxoffice_scrapy/budget.csv', index_col=[0])
 
-Content-based recommendation system.. similar genres or smth..
-Collaborative Filtering
+# ----- IGNORING metacritic_df as imdb_df has metacritic scores, & it's currently broken -------
 
-Recommend stores near you that sell ethical eggplants?
+movies_df = pd.concat([mojo_df, imdb_df, rottentomatoes_df, budget_df], axis=1, join='inner').sort_index()
 
-Tells you how ripe a fruit is depending on image.
+# ------ GENERATE 'standardized scores' column for movies
+# Need to take binomial probability of each review and calculate it that way
+movies_df['standardized_score'] = (movies_df['imdbscore'] + movies_df['audiencescore'] + movies_df['metafromimdb'])/3
 
-RipeBanana
-
-dropdown on portfolio changes color scheme to mango/peach
-and draws banana in the top-left?
-
-HikeWhere
-
-Gives you nearby hiking trails using Google Earth, that you may not have seen yet? Or is it the exploration of these things that's compelling...
-
-"""
-
-
-# from sklearn.feature_extraction.text import CountVectorizer
-# text = ["London Paris London Eggplant", "Paris Paris London"]
-#
-# vectorizer = CountVectorizer()
-# X = vectorizer.fit_transform(text)
-#
-# #find cosine similarity (distance between vectors)
-# from sklearn.metrics.pairwise import cosine_similarity
-
-# [[1.         0.73029674]
-#  [0.73029674 1.        ]]
-#first text similar to that of 2nd text by 100%, second text to 0.73029674, etc.
-
-#Need to construct similarity matrix of movies to say which ones are most similar to others... by using the angular distance
-
-example = ['Jan 17, 2020',
- 'Action Comedy Crime Thriller',
- 'Feb 14, 2020',
- 'Action Adventure Comedy Family Sci-Fi',
- 'Feb 7, 2020',
- 'Action Adventure Comedy Crime',
- 'Jan 17, 2020',
- 'Adventure Comedy Family Fantasy']
-
-print([x for x in example if example.index(x) %2 !=0 ])
+#sorts movies by highest audiencescore
+movies_df.sort_values(by=['standardized_score'], ascending=True, inplace=True)

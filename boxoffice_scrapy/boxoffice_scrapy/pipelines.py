@@ -68,7 +68,7 @@ class heirloom_spiderPipelines(object):
     def __init__(self):
         print(bcolors.OKGREEN + bcolors.BOLD + "Writing ==>" + bcolors.ENDC + "boxoffice_scrapy/heirloom.csv")
         self.csvwriter = csv.writer(open("heirloom.csv", "w", newline=''))
-        self.csvwriter.writerow(["url", "title", "criticscore", "criticcount", "audiencescore"])
+        self.csvwriter.writerow(["mojo_title", "url","title", "criticscore", "criticcount", "audiencescore"])
 
     def process_item(self, item, spider):
         row = []
@@ -84,6 +84,29 @@ class heirloom_spiderPipelines(object):
 
     def close_spider(self, spider):
         print(bcolors.OKGREEN + bcolors.BOLD + "Done ==>" + bcolors.ENDC + " Dumped data into boxoffice_scrapy/heirloom.csv")
+
+class tomato_spiderPipelines(object):
+
+    def __init__(self):
+        print(bcolors.OKGREEN + bcolors.BOLD + "Writing ==>" + bcolors.ENDC + "boxoffice_scrapy/tomato.csv")
+        self.csvwriter = csv.writer(open("heirloom.csv", "w", newline=''))
+        self.csvwriter.writerow(["url", "mojo_title", "tomato_title", "criticscore", "criticcount", "audiencescore", "audiencecount", "tomatoimage"])
+
+    def process_item(self, item, spider):
+        row = []
+        row.append(item["url"])
+        row.append(item["mojo_title"])
+        row.append(item["tomato_title"])
+        row.append(item["criticscore"])
+        row.append(item["criticcount"])
+        row.append(item["audiencescore"])
+        row.append(item["audiencescount"])
+        row.append(itme["tomatoimage"])
+        self.csvwriter.writerrow(row)
+        print(bcolors.OKGREEN + bcolors.BOLD + "Added to csv ==>" + bcolors.ENDC + row[1])
+
+    def close_spider(self, spider):
+        print(bcolors.OKGREEN + bcolors.BOLD + "Done ==>" + bcolors.ENDC + " Dumped data into boxoffice_scrapy/tomato.csv")
 
 class mojo_spiderPipeline(object):
     #FULLY FUNCTIONAL

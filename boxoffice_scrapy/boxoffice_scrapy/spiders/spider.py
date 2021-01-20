@@ -11,9 +11,6 @@ from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
 from pprint import pprint
 import re
-from scrapy.spiders import CrawlSpider, Rule
-from scrapy.linkextractors import LinkExtractor
-
 
 class mojo_spider(scrapy.Spider):
     #FULLY FUNCTIONAL, runtime 1.5 hr
@@ -35,7 +32,7 @@ class mojo_spider(scrapy.Spider):
     def parse(self, response):
 
         #for TESTING
-        for tr in response.xpath('//*[@id="table"]/div/table/tr')[1:2]:
+        for tr in response.xpath('//*[@id="table"]/div/table/tr')[1:10]:
         #for PRODUCTION
         # for tr in response.xpath('//*[@id="table"]/div/table/tr')[1:len(response.xpath('//*[@id="table"]/div/table/tr'))]:
             href = tr.xpath('./td[2]/a/@href')
@@ -104,6 +101,7 @@ class mojo_spider(scrapy.Spider):
 class heirloom_spider(scrapy.Spider):
     #MVP functional (missing count of how MANY critic/audience scores) 50/min.
     #runtime 1.5 hr.
+    #takes in 3108, spits out 2773
     name = "heirloom_spider"
     custom_settings = {
         'ITEM_PIPELINES': {'boxoffice_scrapy.pipelines.heirloom_spiderPipelines': 300}
@@ -114,7 +112,7 @@ class heirloom_spider(scrapy.Spider):
     def start_requests(self):
         #define search request from mojo.csv title entries
         #this runs almost instantly
-        with open('/Users/liamisaacs/Desktop/github repositories/metis-project2/boxoffice_scrapy/mojo.csv') as csv_file:
+        with open('/Users/liamisaacs/Desktop/github repositories/metis-project2/boxoffice_scrapy/mojo_macm1.csv') as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             mojo_titles, row_title = [], []
             for row in csv_reader:
@@ -126,7 +124,7 @@ class heirloom_spider(scrapy.Spider):
                 mojo_titles.append('%20'.join(row[0].split(' ')))
 
         #NOTE: for TESTING only use 1-10 rows
-        mojo_titles = mojo_titles[1:50]
+        mojo_titles = mojo_titles[1:10]
 
         for i in mojo_titles:
             #for each movie build url
@@ -134,7 +132,7 @@ class heirloom_spider(scrapy.Spider):
             print(bcolors.OKGREEN + bcolors.BOLD + "Requesting ==> " + bcolors.ENDC + url)
 
             #NOTE: we pass row_title in meta tag, such that we can reference it in the next class
-            yield scrapy.Request(url=url, meta={'mojo_title': row_title[mojo_titles.index(i)]}, callback=self.parse)
+            yield scrapy.Request(url=url, meta={'mojo_title': row_title[mojo_titles.index(i)+1]}, callback=self.parse)
 
     def parse(self, response):
 
@@ -179,6 +177,76 @@ class heirloom_spider(scrapy.Spider):
         }
         #we avoid time.sleep because it blocks Twisted reactor & eliminates Scrapy's concurrency advantage
 
+class tomato_spider(scrapy.Spider):
+    name = "tomato_spider"
+    custom_settings = {
+        'ITEM_PIPELINES': {'boxoffice_scrapy.pipelines.tomato_spiderPipelines': 300},
+    }
+    allowed_domains = ["rottentomatoes.com"]
+
+    def start_requests(self):
+        #define search request from mojo.csv title entries
+        #this runs almost instantly
+
+        #CHANGE THIS TO YOUR OWN FILEPATH FOR rotten_tomatoes.csv
+        with open('/Users/liamisaacs/Desktop/github repositories/metis-project2/boxoffice_scrapy/rotten_tomatoes.csv') as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            tomato_url, mojo_title = [], []
+            for row in csv_reader:
+                #rotten tomatoes replaces : with 3A
+                mojo_title.append(row[0])
+
+                tomato_url.append(row[1])
+
+
+        #THIS IS A LIST OF URLS WE WILL SCRAPE FROM
+        tomato_url = tomato_url[1:10]
+        print(tomato_url)
+
+
+        for i in tomato_url:
+            url = i
+            print(bcolors.OKGREEN + bcolors.BOLD + "Requesting ==> " + bcolors.ENDC + url)
+
+            #WE REQUEST ROTTENTOMATOES TO GIVE US THE WEBSITE
+            yield scrapy.Request(url=url, meta={'mojo_title': row_title, 'link': url}, callback=self.parse)
+
+    def parse(self, response):
+        mojo_title = response.meta['mojo_title']
+        link = response.meta['link']
+        #We need two things: the # of critic reviews (total count underneath tomatometer) THIS IS CALLED tomato_criticcount
+        #and the # of audience reviews (total count underneath audience score) THIS IS CALLED tomato_audiencecount
+
+        #I already have the review values themselves
+
+        try:
+            tomato_criticcount = response.xpath('//*[@id="topSection"]/div[2]/div[1]/section/section/div[1]/div/small/text()')[0].extract()
+            tomato_criticcount = ''.join(re.findall(r'\d+', tomato_criticcount))
+        except:
+            tomato_criticcount = '"N/A"'
+        try:
+            tomato_audiencecount = response.xpath('//*[@id="topSection"]/div[2]/div[1]/section/section/div[2]/div/strong')[0].extract()
+            tomato_audiencecount = ''.join(re.findall(r'\d+', tomato_audiencecount))
+        except:
+            tomato_audiencecount = "N/A"
+        try:
+            tomato_image = response.xpath('//img[@class=["posterImage js-lazyLoad"]/@srcset')
+            tomato_image = re.match('([^\s]+)', tomato_image)
+        except:
+            tomato_image = "N/A"
+        return{
+            mojo_title = mojo_title,
+            url = link,
+            tomato_criticcount = tomato_criticcount,
+            tomato_audiencecount = tomato_audiencecount,
+            tomato_image = tomato_image
+        }
+
+
+
+    #need to search each url on rotten tomatoes
+
+
 class budget_spider(scrapy.Spider):
     #FULLY FUNCTIONAL
     #SLOWER because the-numbers.com (we use to fetch budgets) has stricter restrictions on scraping
@@ -195,7 +263,7 @@ class budget_spider(scrapy.Spider):
     def start_requests(self):
         #define search request from mojo.csv title entries
         #this runs almost instantly
-        with open('/Users/liamisaacs/Desktop/github repositories/metis-project2/boxoffice_scrapy/mojo.csv') as csv_file:
+        with open('/Users/liamisaacs/Desktop/github repositories/metis-project2/boxoffice_scrapy/mojo_macm1.csv') as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             mojo_titles, row_title = [], []
             for row in csv_reader:
@@ -213,7 +281,7 @@ class budget_spider(scrapy.Spider):
                 mojo_titles.append('+'.join(row[0].split()))
 
         #NOTE: for TESTING only use 1-10 rows
-        mojo_titles = mojo_titles[1:15]
+        mojo_titles = mojo_titles[1:10]
 
         for i in mojo_titles:
             #for each movie build url
@@ -274,6 +342,9 @@ class budget_spider(scrapy.Spider):
         }
 
 class metacritic_spider(scrapy.Spider):
+    #FULLY functional
+    #runtime 2 hrs
+    #3108 movies in, 1971 rows out
     name = "metacritic_spider"
     custom_settings = {
         'ITEM_PIPELINES': {'boxoffice_scrapy.pipelines.metacritic_spiderPipelines': 300},
@@ -282,7 +353,7 @@ class metacritic_spider(scrapy.Spider):
 
     def start_requests(self):
 
-        with open('/Users/liamisaacs/Desktop/github repositories/metis-project2/boxoffice_scrapy/mojo.csv') as csv_file:
+        with open('/Users/liamisaacs/Desktop/github repositories/metis-project2/boxoffice_scrapy/mojo_macm1.csv') as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             mojo_titles, row_title = [], []
             for row in csv_reader:
@@ -322,6 +393,8 @@ class metacritic_spider(scrapy.Spider):
             if audiencescore != 'No score yet':
                 audiencecount = response.xpath('//*[@id="main_content"]//table//tr//td//a/span/text()')[4].extract()
                 audiencecount = re.findall(r"\d+", audiencecount)[0]
+            else:
+                audiencecount = response.xpath('//*[@id="main_content"]//table//tr//td//a/span/text()')[4].extract()
         except IndexError:
             print(bcolors.WARNING + bcolors.BOLD + "Soft failure ==> " + bcolors.ENDC + "movie DNE or name mis-match for " + bcolors.UNDERLINE + mojo_title)
             criticscore = 'Link error'
@@ -337,16 +410,6 @@ class metacritic_spider(scrapy.Spider):
             'audiencecount': audiencecount
         }
 
-SEARCH_QUERY = (
-    'https://www.imdb.com/search/title?'
-    'title_type=feature&'
-    'user_rating=1.0,10.0&'
-    'countries=us&'
-    'languages=en&'
-    'count=250&'
-    'view=simple'
-)
-
 class imdb_spider(scrapy.Spider):
     name = "imdb_spider"
     custom_settings = {
@@ -355,7 +418,7 @@ class imdb_spider(scrapy.Spider):
     allowed_domains = ["imdb.com"]
     def start_requests(self):
 
-        with open('/Users/liamisaacs/Desktop/github repositories/metis-project2/boxoffice_scrapy/mojo.csv') as csv_file:
+        with open('/Users/liamisaacs/Desktop/github repositories/metis-project2/boxoffice_scrapy/mojo_macm1.csv') as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             mojo_titles, row_title = [], []
             for row in csv_reader:
@@ -364,7 +427,7 @@ class imdb_spider(scrapy.Spider):
                 mojo_titles.append('+'.join(row[0].split(' ')))
 
         #NOTE: for TESTING only use 1-10 rows
-        mojo_titles = mojo_titles[1:15]
+        mojo_titles = mojo_titles[1:10]
 
         for i in mojo_titles:
             #for each movie build url
