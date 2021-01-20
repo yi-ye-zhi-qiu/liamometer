@@ -90,7 +90,7 @@ class tomato_spiderPipelines(object):
     def __init__(self):
         print(bcolors.OKGREEN + bcolors.BOLD + "Writing ==>" + bcolors.ENDC + "boxoffice_scrapy/heirloom.csv")
         self.csvwriter = csv.writer(open("heirloom.csv", "w", newline=''))
-        self.csvwriter.writerow(["url", "mojo_title", "tomato_title", "criticscore", "criticcount", "audiencescore", "audiencecount", "tomatoimage"])
+        self.csvwriter.writerow(["url", "mojo_title", "criticcount", "audiencecount", "tomato_image"])
 
     def process_item(self, item, spider):
         row = []
@@ -98,8 +98,8 @@ class tomato_spiderPipelines(object):
         row.append(item["url"])
         row.append(item["tomato_criticcount"])
         row.append(item["tomato_audiencecount"])
-        row.append(itme["tomato_image"])
-        self.csvwriter.writerrow(row)
+        row.append(item["tomato_image"])
+        self.csvwriter.writerow(row)
         print(bcolors.OKGREEN + bcolors.BOLD + "Added to csv ==>" + bcolors.ENDC + row[1])
 
     def close_spider(self, spider):
