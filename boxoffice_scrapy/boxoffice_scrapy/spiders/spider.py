@@ -6,10 +6,10 @@
 import scrapy
 from ..items import BoxItem, bcolors
 import csv
-import json
-from fuzzywuzzy import fuzz
-from fuzzywuzzy import process
-from pprint import pprint
+#import json
+#from fuzzywuzzy import fuzz
+#from fuzzywuzzy import process
+#from pprint import pprint
 import re
 
 class mojo_spider(scrapy.Spider):
@@ -189,7 +189,7 @@ class tomato_spider(scrapy.Spider):
         #this runs almost instantly
 
         #CHANGE THIS TO YOUR OWN FILEPATH FOR rotten_tomatoes.csv
-        with open('/Users/liamisaacs/Desktop/github repositories/metis-project2/boxoffice_scrapy/rotten_tomatoes.csv') as csv_file:
+        with open('/mnt/c/Users/xtras/liam_code/boxoffice_scrapy/rotten_tomatoes.csv') as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             tomato_url, mojo_title = [], []
             for row in csv_reader:
@@ -200,16 +200,17 @@ class tomato_spider(scrapy.Spider):
 
 
         #THIS IS A LIST OF URLS WE WILL SCRAPE FROM, DELETE IF WORKING
-        tomato_url = tomato_url[1:10]
-        print(tomato_url)
+        tomato_url = tomato_url[1:]
+        #print(tomato_url)
 
-
+        counter = 1
         for i in tomato_url:
             url = i
             print(bcolors.OKGREEN + bcolors.BOLD + "Requesting ==> " + bcolors.ENDC + url)
 
             #WE REQUEST ROTTENTOMATOES TO GIVE US THE WEBSITE
-            yield scrapy.Request(url=url, meta={'mojo_title': row_title, 'link': url}, callback=self.parse)
+            yield scrapy.Request(url=url, meta={'mojo_title': mojo_title[counter], 'link': url}, callback=self.parse)
+            counter+=1
 
     def parse(self, response):
         mojo_title = response.meta['mojo_title']
@@ -230,16 +231,17 @@ class tomato_spider(scrapy.Spider):
         except:
             tomato_audiencecount = "N/A"
         try:
-            tomato_image = response.xpath('//img[@class=["posterImage js-lazyLoad"]/@srcset')
-            tomato_image = re.match('([^\s]+)', tomato_image)
+            tomato_image = response.xpath('//*[@id="topSection"]/div[1]/div/img["srcset"]')[0].extract()
+            #response.xpath('//*[@id="topSection"]/img["srcset"]')[0].extract() 
+            #tomato_image = re.match('([^\s]+)', tomato_image)
         except:
             tomato_image = "N/A"
         return{
-            mojo_title = mojo_title,
-            url = link,
-            tomato_criticcount = tomato_criticcount,
-            tomato_audiencecount = tomato_audiencecount,
-            tomato_image = tomato_image
+            'mojo_title': mojo_title,
+            'url': link,
+            'tomato_criticcount': tomato_criticcount,
+            'tomato_audiencecount': tomato_audiencecount,
+            'tomato_image': tomato_image
         }
 
 
