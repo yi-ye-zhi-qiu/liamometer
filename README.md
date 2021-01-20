@@ -1,6 +1,6 @@
-## MangoDB [Python version](https://img.shields.io/badge/python-%E2%89%A53.6-blue.svg?style=flat-square&logo=python&logoColor=white)] ![Metis logo](/curriculum/project-01/day-1-materials/metis.png)
+## MangoDB [Python version](https://img.shields.io/badge/python-%E2%89%A53.6-blue.svg?style=flat-square&logo=python&logoColor=white)] ![Metis logo](metis.png)
 
-###Rotten🍅 + IMDB + Metacritic + BoxOfficeMojo-》🥭 
+### Rotten🍅 + IMDB + Metacritic + BoxOfficeMojo-》🥭
 
 ----
 
