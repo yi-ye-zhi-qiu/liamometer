@@ -1,6 +1,6 @@
-## MangoDB [![Python version](https://img.shields.io/badge/python-%E2%89%A53.6-blue.svg?style=flat-square&logo=python&logoColor=white)] metis icon
+## MangoDB [Python version](https://img.shields.io/badge/python-%E2%89%A53.6-blue.svg?style=flat-square&logo=python&logoColor=white)] ![Metis logo](/curriculum/project-01/day-1-materials/metis.png)
 
-###Go from rotten tomatoes to fresh slices of juicy mango, and find reviews weighted between Rotten Tomatoes, ...
+###Rotten🍅 + IMDB + Metacritic + BoxOfficeMojo-》🥭 
 
 ----
 
