@@ -199,7 +199,7 @@ class tomato_spider(scrapy.Spider):
                 tomato_url.append(row[1])
 
 
-        #THIS IS A LIST OF URLS WE WILL SCRAPE FROM
+        #THIS IS A LIST OF URLS WE WILL SCRAPE FROM, DELETE IF WORKING
         tomato_url = tomato_url[1:10]
         print(tomato_url)
 

@@ -16,7 +16,7 @@ class BoxItem(scrapy.Item):
     release_days = scrapy.Field()
 
 #for RottenTomatoes:
-class HeirloomItem(scrapy.Item):
+class TomatoItem(scrapy.Item):
     mojo_title = scrapy.Field()
     url = scrapy.Field()
     title = scrapy.Field()
@@ -31,7 +31,7 @@ class BudgetItem(scrapy.Item):
     budget = scrapy.Field()
     url = scrapy.Field()
 
-class TomatoItem(scrapy.Item):
+class HeirloomItem(scrapy.Item):
     mojo_title = scrapy.Field()
     url = scrapy.Field()
     tomato_criticcount = scrapy.Field()
