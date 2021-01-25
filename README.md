@@ -9,7 +9,7 @@
 
 **Summary:**  FlaskApp of movies rated using a k- (5-) fold cross-validation lasso multiple linear regression model of IMDb scores (n=2316) scraped off the web, where we chose to use two features: genre (Action, Adventure, etc.) and movie distributor (Disney, Paramount, Other defined as <=7 movies/year, etc.) to analyze for a 2016-2020 timeframe. This model is interpretive and the use case is: "I can see how well a movie did on IMDb, how does that rating compare to if I were to *only* care about a categorical subset of variables, if I were to only consider that it's a Disney Animation, for instance?"
 
-- Want graphs & written analysis, not just a flimsy jupyter notebook? 🤔️ Check "download more stats" - there's a report there. Alternatively, see [Linear Regression of IMDb ratings pdf](metis-project2/Linear Regression of IMDB ratings.pdf).
+- Want graphs & written analysis, not just a flimsy jupyter notebook? 🤔️ Check "download more stats" - there's a report there. Alternatively, see [this pdf](Linear Regression of IMDB ratings.pdf).
 
 ----
 
