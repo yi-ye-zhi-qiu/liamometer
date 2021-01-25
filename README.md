@@ -5,7 +5,7 @@
 ![Metis logo](images/metis.png) Metis data-science bootcamp project 2, **Jan. 11-22 2021**
 
 ** [See the final product](http://34.212.100.77/liamometer) **
-
+** Project was presented, [slides used](presentation_slides.pdf) **
 
 **Summary:**  FlaskApp of movies rated using a k- (5-) fold cross-validation lasso multiple linear regression model of IMDb scores (n=2316) scraped off the web, where we chose to use two features: genre (Action, Adventure, etc.) and movie distributor (Disney, Paramount, Other defined as <=7 movies/year, etc.) to analyze for a 2016-2020 timeframe. This model is interpretive and the use case is: "I can see how well a movie did on IMDb, how does that rating compare to if I were to *only* care about a categorical subset of variables, if I were to only consider that it's a Disney Animation, for instance?"
 
@@ -60,7 +60,7 @@ To get data analysis:
 
 Project Map   
 
-This project is split into data collection, exploratory data analysis (EDA), data cleaning,
+This project is split into data collection and data cleaning/analysis.
 
 ### Data collection
 
