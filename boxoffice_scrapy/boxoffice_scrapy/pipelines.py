@@ -7,6 +7,7 @@ In this file, we process
 IMDb data --> imdb_spiderPipelines
 Metacritic data --> metacritic_spiderPipelines
 RottenTomatoes data --> (1) heirloom_spiderPipelines (2) tomato_spiderPipelines
+**NOTE**: we will create a tomatoes_final in a cleaned data which merges these two...
 BoxOfficeMojo data --> mojo_spiderPipeline
 
 Each pipeline is automatically called by the spider.
@@ -88,11 +89,11 @@ class heirloom_spiderPipelines(object):
 
 class tomato_spiderPipelines(object):
     """
-    Takes in rottentomatoes item, and adds it row-by-row to a csv, dumps out tomato.csv
+    Takes in rottentomatoes item, and adds it row-by-row to a csv, dumps out rotten_tomatoes.csv
     """
     def __init__(self):
         print(bcolors.OKGREEN + bcolors.BOLD + "Writing ==>" + bcolors.ENDC + "boxoffice_scrapy/heirloom.csv")
-        self.csvwriter = csv.writer(open("tomato.csv", "w", newline=''))
+        self.csvwriter = csv.writer(open("rotten_tomatoes.csv", "w", newline=''))
         self.csvwriter.writerow(["url", "mojo_title", "criticcount", "audiencecount", "tomato_image"])
 
     def process_item(self, item, spider):
