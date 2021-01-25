@@ -3,17 +3,42 @@
 #                     scrapy crawl heirloom_spider -L WARN               for clean output
 #                     scrapy crawl budget_spider -L WARN                 for clean output
 #libraries listed in order they are used
+"""
+NOTE: if you download this code, you must change the following lines of code to be *your* file paths, not mine:
+line 157, 243, 326, 399.
+
+Thanks!
+"""
+
+
 import scrapy
 from ..items import BoxItem, bcolors
 import csv
-#import json
-#from fuzzywuzzy import fuzz
-#from fuzzywuzzy import process
-#from pprint import pprint
+import json
+from fuzzywuzzy import fuzz
+from fuzzywuzzy import process
+from pprint import pprint
 import re
 
 class mojo_spider(scrapy.Spider):
     #FULLY FUNCTIONAL, runtime 1.5 hr
+    """
+    Takes in: start_urls, which is set to 2017-2020.
+
+    Notes:
+    This will 'crawl' box office mojo urls for years of '17, '18 '19 and '20.
+    Crawling will pull the following fields per movie:
+    Title, MPAA, Budget, Release Date, Genres, Opening Revenue, World Revenue, Distributor, Reelase Date and Opening Theaters (how many theaters the movie premiered at)
+    These fields are stored in a scrapy item, which is a dictionary-like object (so we are basically using a dictionary)
+    If any of the above fields is missing, it will populate N/A. This is true for all except Title, Domestic Revenue, and World Revenue.
+    Those three are mandatory categories.
+    This is also sped up by using a generator function (hence yield instead of return).
+    The scrapy item, or the dictionary data per item, is put into a csv file row by row (your terminal will echo this).
+    This is specified in scrapy by the "pipeline" for that spider, here we have it set to mojo_spiderPipeline.
+
+    Output:
+    A csv called "mojo.csv", around 3.1k rows long.
+    """
     name = "mojo_spider"
     custom_settings = {
         'ITEM_PIPELINES': {'boxoffice_scrapy.pipelines.mojo_spiderPipeline': 300},
@@ -99,26 +124,42 @@ class mojo_spider(scrapy.Spider):
         yield item
 
 class heirloom_spider(scrapy.Spider):
-    #MVP functional (missing count of how MANY critic/audience scores) 50/min.
+    #FULLY FUNCTIONAL
     #runtime 1.5 hr.
     #takes in 3108, spits out 2773
+    """
+    Assembly of RottenTomatoes data is split into two spiders, we crawl
+    1. heirloom_spider
+    2. tomato_spider
+
+    Why do we have two?
+
+    Heirloom spider takes in mojo_csv, and grabs RottenTomatoes urls for each movie. This is a dynamic search pattern. This is what will get you IP banned.
+    By dynamically searching we preserve 90% of data, and don't have to drop a bunch of rows because we "guess" at what the url is based off a given site pattern.
+    It's better to do dynamic searches like this always between websites, as the urls per movie will be different, the backend databases are never going to be the same.
+    It's worth noting that approach usually involves disobeying robots.txt though, and can get you banned (temporarily).
+
+    Takes in: mojo_csv file.
+    Spits out: heirloom.csv, a bunch of rotten_tomatoes urls and critic/audience scores. These will be "N/A" if they're not found.
+
+    We use fuzzywuzzy to double-check the search result and make sure it's the same as the movie we want.
+
+    """
     name = "heirloom_spider"
     custom_settings = {
         'ITEM_PIPELINES': {'boxoffice_scrapy.pipelines.heirloom_spiderPipelines': 300}
     }
     allowed_domains = ["www.rottentomatoes.com"]
-    start_urls = ['https://www.rottentomatoes.com/']
 
     def start_requests(self):
         #define search request from mojo.csv title entries
         #this runs almost instantly
-        with open('/Users/liamisaacs/Desktop/github repositories/metis-project2/boxoffice_scrapy/mojo_macm1.csv') as csv_file:
+        with open('/Users/liamisaacs/Desktop/github repositories/metis-project2/boxoffice_scrapy/mojo.csv') as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             mojo_titles, row_title = [], []
             for row in csv_reader:
                 #rotten tomatoes replaces : with 3A
                 row_title.append(row[0])
-
                 row[0] = row[0].replace(':', '%3A')
                 #search strings are just each word followed by %20
                 mojo_titles.append('%20'.join(row[0].split(' ')))
@@ -139,6 +180,10 @@ class heirloom_spider(scrapy.Spider):
         raw_json = response.xpath('//script[@id="movies-json"]/text()').get()
         json_data = json.loads(raw_json)
         row_title = response.meta['mojo_title']
+
+        #So, on each search result RottenTomatoes makes an internal API request, which contains JSON data.
+        #This would save us the second step if the JSON data is complete, but it only gives critic and audience score,
+        #not the *number* of scores per each.
 
         #for learning, please uncomment the below two lines, they show you the raw JSON
         # print(bcolors.OKGREEN + bcolors.BOLD + "Raw json ==>" +bcolors.ENDC)
@@ -178,6 +223,12 @@ class heirloom_spider(scrapy.Spider):
         #we avoid time.sleep because it blocks Twisted reactor & eliminates Scrapy's concurrency advantage
 
 class tomato_spider(scrapy.Spider):
+    """
+    This is our step 2 for RottenTomatoes data, where we just query each url we found, and use xpath
+    to get each data point we require. These are "N/A" if they do not exist.
+    """
+
+
     name = "tomato_spider"
     custom_settings = {
         'ITEM_PIPELINES': {'boxoffice_scrapy.pipelines.tomato_spiderPipelines': 300},
@@ -248,105 +299,22 @@ class tomato_spider(scrapy.Spider):
 
     #need to search each url on rotten tomatoes
 
-
-class budget_spider(scrapy.Spider):
-    #FULLY FUNCTIONAL
-    #SLOWER because the-numbers.com (we use to fetch budgets) has stricter restrictions on scraping
-    #we are forced to not only impersonate a user, but add-in download delays and autothrottle
-
-    #runtime: ___
-    name = "budget_spider"
-    custom_settings = {
-        'ITEM_PIPELINES': {'boxoffice_scrapy.pipelines.budget_spiderPipelines': 300}
-    }
-    allowed_domains = ["www.the-numbers.com"]
-    start_urls = ['https://www.the-numbers.com/']
-
-    def start_requests(self):
-        #define search request from mojo.csv title entries
-        #this runs almost instantly
-        with open('/Users/liamisaacs/Desktop/github repositories/metis-project2/boxoffice_scrapy/mojo_macm1.csv') as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=',')
-            mojo_titles, row_title = [], []
-            for row in csv_reader:
-                #store row_title just to print out success message in terminal
-                row_title.append(row[0])
-
-                #the-numbers works better on searches without characters like ":" or "-"
-                row[0] = row[0].replace('-', ' ')
-                row[0] = row[0].replace('Episode', 'Ep')
-                row[0] = row[0].replace(':', ' ')
-
-                #example search string: https://www.the-numbers.com/custom-search?searchterm=star+wars+ep+VII+last+jedi
-
-                #search strings are just word+word+word
-                mojo_titles.append('+'.join(row[0].split()))
-
-        #NOTE: for TESTING only use 1-10 rows
-        mojo_titles = mojo_titles[1:10]
-
-        for i in mojo_titles:
-            #for each movie build url
-            url = 'https://www.the-numbers.com/custom-search?searchterm=' + i
-            print(bcolors.OKGREEN + bcolors.BOLD + "Requesting (1 of 2 steps) ==> " + bcolors.ENDC + url)
-            #NOTE: the-numbers will block you, so just pass in user-agent in settings.py
-            #NOTE: we pass row_title in meta tag, such that we can reference it in the next class
-            yield scrapy.Request(url=url, meta={'mojo_title': row_title[mojo_titles.index(i)+1]}, callback=self.parse)
-
-    def parse(self, response):
-        row_title = response.meta['mojo_title']
-        try:
-            link = 'https://www.the-numbers.com/' + response.xpath('//*[@id="page_filling_chart"]//tr//td//a/@href')[1].extract()
-            print(bcolors.OKGREEN + bcolors.BOLD + "Requesting (2 of 2 steps) ==> " + bcolors.ENDC + link)
-        #some movies on BoxOfficeMojo do not exist on the-numbers.com
-        #so we have to yield results in a try-except condition, where non-existent results are replaced w/ N/A
-            go_to_movie_link = scrapy.Request(url=link, callback=self.parse_each_movie, meta={'mojo_title': row_title, 'link': link})
-            return go_to_movie_link
-        except IndexError:
-            print(bcolors.WARNING + bcolors.BOLD + "Request (2 of 2 steps) ==> " + bcolors.ENDC + "failed (non-fatal), movie" + bcolors.UNDERLINE + row_title + bcolors.ENDC + "DNE in the-numbers.com database")
-            return{
-                'mojo_title': row_title,
-                'title': 'N/A',
-                'url': 'N/A',
-                'budget': 'N/A'
-            }
-
-    def parse_each_movie(self, response):
-        row_title = response.meta['mojo_title']
-        #title is invariably accurate, it will consistently be in the same spot
-        title = response.xpath('//*[@id="main"]/div/h1/text()')[0].extract()
-        link = response.meta['link']
-
-        #for not wellknown movies, such as the remake of 1955 Senso (https://www.the-numbers.com/custom-search?searchterm=Senso)
-        #there is no production budget, for this situation we just enter "N/A"
-        #NOTE: this is assuming table is consistently ordered for movies that have budgets...
-
-        #budget has to be "smart-searched", its position on the page is highly inconsistent
-        elements = []
-        #grab all elements present on page in table
-        for i in range(0, len(response.xpath('//*[@id="summary"]//table//tr//td//b/text()'))-1):
-            elements.append(''.join(response.xpath('//*[@id="summary"]//table//tr//td//b/text()')[i].extract().replace('\xa0', ' ')))
-        #just examine production budget, wherever it appears on the page (messy)
-        if 'Production Budget:' in elements:
-            m = elements.index('Production Budget:')
-            loc_budget = ('//*[@id="summary"]/table/tr[{}]/td[2]').format(m+1)
-            budget = response.xpath(loc_budget)[0].extract()
-            no_td_tags = re.compile('<.*?>')
-            budget = re.sub(no_td_tags, '', budget)
-            budget = budget.split('(')[0]
-        else:
-            budget = 'N/A'
-        return {
-            'mojo_title': row_title,
-            'title': title,
-            'url': link,
-            'budget': budget
-        }
-
 class metacritic_spider(scrapy.Spider):
     #FULLY functional
     #runtime 2 hrs
     #3108 movies in, 1971 rows out
+    """
+    Takes in: mojo_csv and searches metacritic reviews.
+
+    Returns audience score and count, critic score and count (count = how many reviews there were).
+
+    NOTE: for metacritic we just "guess" the url based off a pattern, we AVOID disobeying robots.txt, and AVOID searching.
+    This is OK, it preserves about 70% of data.
+
+    If there's an error in finding the url, we return "Link error". If we find the url but can't find the score for any of the fields, that field will show up as "N/A".
+
+    """
+
     name = "metacritic_spider"
     custom_settings = {
         'ITEM_PIPELINES': {'boxoffice_scrapy.pipelines.metacritic_spiderPipelines': 300},
@@ -413,6 +381,14 @@ class metacritic_spider(scrapy.Spider):
         }
 
 class imdb_spider(scrapy.Spider):
+    """
+    Takes in: mojo_csv
+    Spits out: IMDb data for each movie. We "guess" the URL again here, but this preserves 90% of data (exact: 89.5%), or returns 2.7k rows from a 3.1k input.
+    The result is returned as "imdb.csv".
+    Data is processed in the imdb_spiderPipelines.
+    """
+
+
     name = "imdb_spider"
     custom_settings = {
         'ITEM_PIPELINES': {'boxoffice_scrapy.pipelines.imdb_spiderPipelines': 300},

@@ -1,27 +1,24 @@
+"""
+Scrapy pipelines are used to process scrapy items.
+Where scrapy items are dictionary-like objects, pipelines are for processing them.
+
+In this file, we process
+
+IMDb data --> imdb_spiderPipelines
+Metacritic data --> metacritic_spiderPipelines
+RottenTomatoes data --> (1) heirloom_spiderPipelines (2) tomato_spiderPipelines
+BoxOfficeMojo data --> mojo_spiderPipeline
+
+Each pipeline is automatically called by the spider.
+"""
+
 import csv
 from .items import bcolors
 
-class budget_spiderPipelines(object):
-
-    def __init__(self):
-        print(bcolors.OKGREEN + bcolors.BOLD + "Writing ==>" + bcolors.ENDC + "boxoffice_scrapy/budget.csv")
-        self.csvwriter = csv.writer(open("budget.csv", "w", newline=''))
-        self.csvwriter.writerow(["mojo_title", "title", "budget", "url"])
-
-    def process_item(self, item, spider):
-        row = []
-        row.append(item["mojo_title"])
-        row.append(item["title"])
-        row.append(item["budget"])
-        row.append(item["url"])
-        self.csvwriter.writerow(row)
-        print(bcolors.OKGREEN + bcolors.BOLD + "Added to csv ==>" + bcolors.ENDC + row[0])
-        return item
-
-    def close_spider(self, spider):
-        print(bcolors.OKGREEN + bcolors.BOLD + "Done ==>" + bcolors.ENDC + " Dumped data into boxoffice_scrapy/budget.csv")
-
 class imdb_spiderPipelines(object):
+    """
+    Takes in mojo item, and adds it row-by-row to a csv, dumps out imdb.csv
+    """
 
     def __init__(self):
         print(bcolors.OKGREEN + bcolors.BOLD + "Writing ==>" + bcolors.ENDC + "boxoffice_scrapy/imdb.csv")
@@ -43,7 +40,9 @@ class imdb_spiderPipelines(object):
         print(bcolors.OKGREEN + bcolors.BOLD + "Done ==>" + bcolors.ENDC + " Dumped data into boxoffice_scrapy/imdb.csv")
 
 class metacritic_spiderPipelines(object):
-
+    """
+    Takes in metacritic item, and adds it row-by-row to a csv, dumps out metacritic.csv
+    """
     def __init__(self):
         print(bcolors.OKGREEN + bcolors.BOLD + "Writing ==>" + bcolors.ENDC + "boxoffice_scrapy/metacritic.csv")
         self.csvwriter = csv.writer(open("metacritic.csv", "w", newline=''))
@@ -64,7 +63,9 @@ class metacritic_spiderPipelines(object):
         print(bcolors.OKGREEN + bcolors.BOLD + "Done ==>" + bcolors.ENDC + " Dumped data into boxofficescrapy/metacritic.csv")
 
 class heirloom_spiderPipelines(object):
-
+    """
+    Takes in rottentomatoes search item, and adds it row-by-row to a csv, dumps out heirloom.csv
+    """
     def __init__(self):
         print(bcolors.OKGREEN + bcolors.BOLD + "Writing ==>" + bcolors.ENDC + "boxoffice_scrapy/heirloom.csv")
         self.csvwriter = csv.writer(open("heirloom.csv", "w", newline=''))
@@ -86,10 +87,12 @@ class heirloom_spiderPipelines(object):
         print(bcolors.OKGREEN + bcolors.BOLD + "Done ==>" + bcolors.ENDC + " Dumped data into boxoffice_scrapy/heirloom.csv")
 
 class tomato_spiderPipelines(object):
-
+    """
+    Takes in rottentomatoes item, and adds it row-by-row to a csv, dumps out tomato.csv
+    """
     def __init__(self):
         print(bcolors.OKGREEN + bcolors.BOLD + "Writing ==>" + bcolors.ENDC + "boxoffice_scrapy/heirloom.csv")
-        self.csvwriter = csv.writer(open("heirloom.csv", "w", newline=''))
+        self.csvwriter = csv.writer(open("tomato.csv", "w", newline=''))
         self.csvwriter.writerow(["url", "mojo_title", "criticcount", "audiencecount", "tomato_image"])
 
     def process_item(self, item, spider):
@@ -106,10 +109,13 @@ class tomato_spiderPipelines(object):
         print(bcolors.OKGREEN + bcolors.BOLD + "Done ==>" + bcolors.ENDC + " Dumped data into boxoffice_scrapy/heirloom.csv")
 
 class mojo_spiderPipeline(object):
-    #FULLY FUNCTIONAL
+        """
+        Takes in boxoffice item, and adds it row-by-row to a csv, dumps out mojo.csv
+        """
+
     def __init__(self):
         print(bcolors.OKGREEN + bcolors.BOLD + "Writing ==>" + bcolors.ENDC + "boxoffice_scrapy/mojo.csv")
-        self.csvwriter = csv.writer(open("mojo_macm1.csv", "w", newline=''))
+        self.csvwriter = csv.writer(open("mojo.csv", "w", newline=''))
         self.csvwriter.writerow(["title", "domestic_revenue", "world_revenue", "distributor", "opening_revenue", "opening_theaters", "budget", "MPAA", "genres", "release_days"])
         #this one takes 1-2 seconds to start-up, so I include this..
         print(bcolors.OKGREEN + bcolors.BOLD + "One second..." + bcolors.ENDC)

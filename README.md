@@ -26,7 +26,7 @@ The scrapy spider & data analysis:
 - `Python 3.6` or greater
 - `jupyter notebook`
 - `scrapy` `(pip3 install scrapy)`
-- other modules: `pandas` `scikit-learn` `matplotlib` `seaborn` `numpy` `json` `regex` `fuzzywuzzy`
+- other modules: `pandas` `scikit-learn` `matplotlib` `seaborn` `numpy` `json` `regex` `fuzzywuzzy` `pprint`
 - ~8 hours of time start to finish
 - Strong willingness to get IP-banned from RottenTomatoes (just for a few days)
 
@@ -38,8 +38,34 @@ The WebApp:
 
 ----
 
+How to run locally:
+- follow directions in `spider.py` to change a few lines of code to match your local path, not mine
+
+In your terminal:
+- `cd boxoffice_scrapy`
+- `scrapy crawl mojo_spider -L WARN`
+- `scrapy crawl tomato_spider -L WARN`
+- `scrapy crawl imdb_spider -L WARN`
+- `scrapy crawl heirloom_spider -L WARN`
+- `scrapy crawl metacritic_spider -L WARN`
+
+Output
+- in "boxoffice_scrapy": `heirloom.csv`, `imdb.csv`, `metacritic.csv`, `mojo.csv`, `tomatoes.csv`
+
+To get data analysis:
+- run `analysis.ipynb`
+(or build a FlaskApp by copying [this code](https://github.com/yi-ye-zhi-qiu/personalwebsite))
+
+----
+
 Project Map   
 
 This project is split into data collection, exploratory data analysis (EDA), data cleaning,
 
 ### Data collection
+
+- Collected using scrapy web-crawling framework
+
+### Data cleaning and analysis
+
+- Cleaned and analyzed using python
