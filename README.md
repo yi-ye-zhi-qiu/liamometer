@@ -64,7 +64,7 @@ This project is split into data collection, exploratory data analysis (EDA), dat
 
 ### Data collection
 
-- Collected using scrapy web-crawling framework
+- Collected using scrapy web-crawling framework (all found in `boxoffice_scrapy`)
 
 ### Data cleaning and analysis
 
