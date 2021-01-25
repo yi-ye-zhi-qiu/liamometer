@@ -2,10 +2,15 @@ import scrapy
 
 #items ~= dictionaries in scrapy, the below dictionaries are used for data
 
+class SequelItem(scrapy.Item):
+    mojo_title = scrapy.Field()
+    has_sequel = scrapy.Field()
+
 #for BoxOfficeMojo:
 class BoxItem(scrapy.Item):
     title = scrapy.Field()
     domestic_revenue = scrapy.Field()
+    international_revenue = scrapy.Field()
     world_revenue = scrapy.Field()
     distributor = scrapy.Field()
     opening_revenue = scrapy.Field()
@@ -14,6 +19,7 @@ class BoxItem(scrapy.Item):
     MPAA = scrapy.Field()
     genres = scrapy.Field()
     release_days = scrapy.Field()
+    #re_release = scrapy.Field()
 
 #for RottenTomatoes:
 class TomatoItem(scrapy.Item):

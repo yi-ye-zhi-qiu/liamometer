@@ -14,13 +14,12 @@ STATS_DUMP = False
 #     'boxoffice_scrapy.pipelines.budget_spiderPipelines': 300,
 #     'boxoffice_scrapy.pipelines.metacritic_spiderPipelines': 400
 # }
-HTTPERROR_ALLOWED_CODES  =[404]
 
 #impersonate user with user_agent
 
 #identify as common browser, add in delays (slow down scraping)
-CONCURRENT_REQUESTS = 1
-DOWNLOAD_DELAY = 5
+CONCURRENT_REQUESTS = 2
+DOWNLOAD_DELAY = 1
 
 #create somewhat realistic browsing pattern
 AUTOTHROTTLE_ENABLED = True
