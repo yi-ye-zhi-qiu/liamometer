@@ -2,7 +2,7 @@
 
 ### Linear regression analysis of IMDb Movie Ratings as an interpretive model for audience score based on genre & distributor
 
-![Metis logo](metis.png) Metis data-science bootcamp project 2, **Jan. 11-22 2021**
+![Metis logo](images/metis.png) Metis data-science bootcamp project 2, **Jan. 11-22 2021**
 
 ** [See the final product](http://34.212.100.77/liamometer) **
 
