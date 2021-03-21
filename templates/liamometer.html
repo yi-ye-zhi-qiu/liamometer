@@ -1,0 +1,59 @@
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Liam-o-meter 🥭</title>
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/style.css') }}">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100&display=swap" rel="stylesheet">
+    <!-- <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='js/infinite_scroll.js') }}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.0/animate.min.css"> -->
+  </head>
+  <body>
+
+    <!-- <div id="scroller" class="mb-3">
+      <template id="post_template"> -->
+
+        <div class="back-">
+          <div class="ProjectHeader">
+            liamometer
+            <div class="ProjectDescriptionSamePage">
+              <p>check out what I think of movies I've (mostly) never seen</p>
+              <p>(my opinion is based on internationally-liked animation films)</p>
+              <p class="download">if you're more about the math, <a href="{{ url_for('static', filename='stat_reports/Linear Regression of IMDB ratings.pdf')}}" download>click here to download a report</a></p>
+            </div>
+            <a class = "back-button" href="{{ url_for('show_index') }}">&#8249;</a>
+
+          </div>
+        </div>
+
+        {% block content %}
+        <div class="gallery">
+            <div class="img-banner">
+                <img class=" movie-img" src="{{ liams_favorite_movie_image }}"></img>
+                <p class="movie-title liams-favorite">Liam's favorite movie!! {{liams_favorite[0]}} scored @ {{max}} on the liamometer~~</p>
+            </div>
+          {%for i in range(1, 500) %}
+          <!-- <div class="img-banner animated fadeIn shadow-sm"> -->
+          <div class="img-banner">
+            <img class="movie-img" src="{{ html_data.iloc[i]['tomato_image'] }}"></img>
+            <p class="movie-title">{{html_data.iloc[i]['mojo_title']}}</p>
+            <span class="movie-revenue">Liam-o-meter: <span class="value">{{html_data.iloc[i]['pred']}}</span></span>
+            <p class="movie-revenue">IMDB: {{html_data.iloc[i]['imdbscore']}}</p>
+          </div>
+          {% endfor %}
+          {% endblock %}
+        </div>
+
+      <!-- </template>
+    </div> -->
+    <!-- <div class="d-flex justify-content-center mb-3" id="sentinel">
+      <div class="spinner-border" role="status"></div>
+    </div> -->
+
+  </body>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+
+  <script src="{{url_for('static', filename='js/colorpicker.js')}}"></script>
+
+</html>
