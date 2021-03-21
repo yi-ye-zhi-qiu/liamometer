@@ -4,12 +4,12 @@
 
 ![Metis logo](images/metis.png) Metis data-science bootcamp project 2, **Jan. 11-22 2021**
 
-** [See the final product](http://34.212.100.77/liamometer) **
+** [See the final product](http://liamisaacs.com/liamometer) **
 ** Project was presented, [slides used](presentation_slides.pdf) **
 
-**Summary:**  FlaskApp of movies rated using a k- (5-) fold cross-validation lasso multiple linear regression model of IMDb scores (n=2316) scraped off the web, where we chose to use two features: genre (Action, Adventure, etc.) and movie distributor (Disney, Paramount, Other defined as <=7 movies/year, etc.) to analyze for a 2016-2020 timeframe. This model is interpretive and the use case is: "I can see how well a movie did on IMDb, how does that rating compare to if I were to *only* care about a categorical subset of variables, if I were to only consider that it's a Disney Animation, for instance?"
+**Summary:**  FlaskApp of movies rated using a k- (5-) fold cross-validation lasso multiple linear regression model of IMDb scores (n=2316) scraped off the web, where we chose to use two features: genre (Action, Adventure, etc.) and movie distributor (Disney, Paramount, Other defined as <=7 movies/year, etc.) to analyze for a 2017-2020 timeframe. This model is interpretive and the use case is: "I can see how well a movie did on IMDb, how does that rating compare to if I were to *only* care about a categorical subset of variables, if I were to only consider that it's a Disney Animation, for instance?"
 
-- Want graphs & written analysis, not just a flimsy jupyter notebook? 🤔️ Check "download more stats" - there's a report there. Alternatively, see [this pdf](Linear%20Regression%20of%20IMDB%20ratings.pdf).
+- Want graphs & written analysis, not just a jupyter notebook? 🤔️ Check "download more stats" - there's a report there. Alternatively, see [this pdf](static/stat_reports/Linear%20Regression%20of%20IMDB%20ratings.pdf).
 
 ----
 
