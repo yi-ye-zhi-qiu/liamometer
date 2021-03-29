@@ -31,6 +31,10 @@ The scrapy spider & data analysis:
 - ~8 hours of time start to finish
 - Strong willingness to get IP-banned from RottenTomatoes (just for a few days)
 
+The web-scraping:
+
+For a tutorial on web-scraping using Scrapy you can see my blogpost [here](https://yeqiuu.medium.com/tutorial-scraping-boxofficemojo-with-scrapy-299e7b35254e). 
+
 The WebApp:
 
 - The FlaskApp is running on Ubuntu on an AWS AmazonLightsail server.
