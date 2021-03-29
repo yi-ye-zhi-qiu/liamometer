@@ -26,7 +26,8 @@ The scrapy spider & data analysis:
 - `Python 3.6` or greater
 - `jupyter notebook`
 - `scrapy` `(pip3 install scrapy)`
-- other modules: `pandas` `scikit-learn` `matplotlib` `seaborn` `numpy` `json` `regex` `fuzzywuzzy` `pprint`
+- `scikit-learn==v0.22.0<=0.23.2` (necessary for yellowbrick `utils._safe_indexing` dependency)
+- other modules: `pandas` `matplotlib` `seaborn` `numpy` `json` `regex` `fuzzywuzzy` `pprint` `yellowbrick`
 - ~8 hours of time start to finish
 - Strong willingness to get IP-banned from RottenTomatoes (just for a few days)
 
