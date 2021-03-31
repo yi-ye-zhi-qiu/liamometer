@@ -57,7 +57,8 @@ def create_interactions(df):
     Creates interaction terms in a df
     """
     df_int = df.copy()
-    for i in range(3, len(df.columns)-1):
+    #range skips over things we do not want to interact with
+    for i in range(4, len(df.columns)-1):
         for j in range(i+1, len(df.columns)):
             name = str(df.columns[i]) + ' * ' + str(df.columns[j])
             df_int.loc[:, name] = df[str(df.columns[i+1])] * df[str(df.columns[j])]
@@ -87,74 +88,35 @@ def run_linear(X, y):
     print(f'Linear regression val R^2: {lr.score(X_, y):.3f}')
 
 def give_regression(df):
+    """
+    Gives regression model which is most optimal, as per Step III notebook
+    """
+    df = one_hot_encode('genres', df)
+    df = replace_(df, 'distributor', 40)
+    df = one_hot_encode('distributor', df)
 
     #Train-test split
     X, y = df, df['imdbscore']
-
-    #Drop target
+    y = pd.to_numeric(y)
     X.drop(columns=['imdbscore'], inplace=True)
-
-    #Add in domestic international ratio
     X['domestic_international_ratio'] = X['domestic_revenue'] / X['international_revenue']
-    #Fill NA as 0 since this means there was no international release
     X['domestic_international_ratio'].fillna(value=0, inplace=True)
-    #Fill NA as 0 as this means there was no opening relesase
     X['opening_revenue'].fillna(value=0, inplace=True)
-    #Drop un-needed columns
+    #Division for ratio creates a float; opening revenue naturally is a float
+    #We convert to integer like this
+    for col in ['domestic_international_ratio', 'opening_revenue']:
+        X[col] = X[col].astype(int)
     X.drop(columns=['mojo_title', 'international_revenue', 'domestic_revenue'], inplace=True)
+    # shift column 'Name' to first position
+    first_column = X.pop('domestic_international_ratio')
+    # insert column using insert(position,column_name,
+    # first_column) function
+    X.insert(3, 'domestic_international_ratio', first_column)
 
-    #Train-test split
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.2, random_state =10)
 
-    #Baseline ...
-    X_TrainBaseline = X_train.copy()
-    X_TestBaseline = X_test.copy()
-    X_TrainBaseline = X_TrainBaseline.drop(columns=['mojo_title', 'international_revenue', 'domestic_revenue',
-                                 'opening_revenue', 'distributor'], axis=1)
-    X_TestBaseline = X_TestBaseline.drop(columns=['mojo_title', 'international_revenue', 'domestic_revenue',
-                                 'opening_revenue', 'distributor'], axis=1)
-    print("Baseline got!")
-
-    #Baseline w/ interactions ...
-    X_TrainBaselineInteractions = create_interactions(X_TrainBaseline)
-    X_TestBaselineInteractions = create_interactions(X_TestBaseline)
-    print("Interactions between genres done!")
-
-    X_TrainBaselineInteractions = X_TrainBaselineInteractions.drop(columns=['imdbscore'])
-    X_TestBaselineInteractions = X_TestBaselineInteractions.drop(columns=['imdbscore'])
-
-    print("Merge back in interactions to X_trian")
-    X_train = X_train.merge(X_TrainBaselineInteractions.iloc[:, 26:380], how='inner', left_index=True, right_index=True)
-    X_test = X_test.merge(X_TestBaselineInteractions.iloc[:, 26:380], how='inner', left_index=True, right_index=True)
-
-
-    print("Remove un-necessary columns")
-    X_train.drop(columns=['mojo_title', 'international_revenue', 'domestic_revenue'], inplace=True)
-    X_test.drop(columns=['mojo_title', 'international_revenue', 'domestic_revenue'], inplace=True)
-
-
-
-    #Baseline w/ interactions w/ one hot encoded distributor
-    X_TrainBaselinev2 = one_hot_encode('distributor', X_train)
-    X_TestBaselinev2 = one_hot_encode('distributor', X_test)
-    print("Distributor is one-hot-encoded")
-
-    X_TrainBaselinev2 = X_TrainBaselinev2.drop(columns=['imdbscore'])
-    X_TestBaselinev2 = X_TestBaselinev2.drop(columns=['imdbscore'])
-
-    X_TrainBaselinev2 = X_TrainBaselinev2.drop(columns=['mojo_title', 'international_revenue', 'domestic_revenue',
-                                 'opening_revenue'], axis=1)
-    X_TestBaselinev2 = X_TestBaselinev2.drop(columns=['mojo_title', 'international_revenue', 'domestic_revenue',
-                                 'opening_revenue'], axis=1)
-
     scaler = preprocessing.StandardScaler()
-    X_TrainBaselinev2Scaled = scaler.fit_transform(X_TrainBaselinev2.iloc[:, 2:])
-    X_TestBaselinev2Scaled = scaler.fit_transform(X_TestBaselinev2.iloc[:, 2:])
+    X_train = scaler.fit_transform(X_train)
+    X_test = scaler.fit_transform(X_test)
 
-    lm = LinearRegression()
-    lm.fit(X_TrainBaselinev2, y_train)
-    print(f'Linear regression (on TRAINING DATA) with genre-genre interaction terms AND OHE of distributor val R^2: {lm.score(X_TrainBaselinev2, y_train):.3f}')
-    lm.fit(X_TestBaselinev2, y_test)
-    print(f'Linear regression (on TEST DATA) with genre-genre interaction terms AND OHE of distributor val R^2: {lm.score(X_TestBaselinev2, y_test):.3f}')
-
-    return X_TrainBaselinev2Scaled, X_TestBaselinev2Scaled, y_train, y_test
+    return X_train, X_test, y_train, y_test
