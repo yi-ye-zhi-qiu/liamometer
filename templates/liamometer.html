@@ -1,7 +1,7 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8">
-    <title>Liam-o-meter 🥭</title>
+    <title>liamometer</title>
     <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/style.css') }}">
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100&display=swap" rel="stylesheet">
@@ -20,17 +20,14 @@
             <div class="ProjectDescriptionSamePage">
               <p>check out what I think of movies I've (mostly) never seen</p>
               <p>(my opinion is based on internationally-liked animation films)</p>
-              <p class="download">if you're more about the math, <a href="{{ url_for('static', filename='stat_reports/Linear Regression of IMDB ratings.pdf')}}" download>click here to download a report</a></p>
             </div>
-            <a class = "back-button" href="{{ url_for('show_index') }}">&#8249;</a>
-
           </div>
         </div>
 
         {% block content %}
         <div class="gallery">
             <div class="img-banner">
-                <img class=" movie-img" src="{{ liams_favorite_movie_image }}"></img>
+                <img class=" movie-img" src="{{ html_data.iloc[0]['tomato_image'] }}"></img>
                 <p class="movie-title liams-favorite">Liam's favorite movie!! {{liams_favorite[0]}} scored @ {{max}} on the liamometer~~</p>
             </div>
           {%for i in range(1, 500) %}
