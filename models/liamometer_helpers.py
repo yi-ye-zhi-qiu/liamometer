@@ -165,8 +165,9 @@ def give_html(mojo, imdb, movie_images):
     #Round to just one decimal point
     df['pred'] = df['pred'].round(1)
 
-    #Ignore the first row because I am bias
-    df = df.iloc[1: , :]
+    #Drop duplicate movies
+    df.drop_duplicates(subset=['mojo_title'], inplace=True)
+
 
     html_ = df
     return html_
