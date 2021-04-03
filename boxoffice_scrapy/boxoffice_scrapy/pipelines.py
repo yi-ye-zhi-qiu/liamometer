@@ -110,9 +110,9 @@ class tomato_spiderPipelines(object):
         print(bcolors.OKGREEN + bcolors.BOLD + "Done ==>" + bcolors.ENDC + " Dumped data into boxoffice_scrapy/heirloom.csv")
 
 class mojo_spiderPipeline(object):
-        """
-        Takes in boxoffice item, and adds it row-by-row to a csv, dumps out mojo.csv
-        """
+    """
+    Takes in boxoffice item, and adds it row-by-row to a csv, dumps out mojo.csv
+    """
 
     def __init__(self):
         print(bcolors.OKGREEN + bcolors.BOLD + "Writing ==>" + bcolors.ENDC + "boxoffice_scrapy/mojo.csv")
