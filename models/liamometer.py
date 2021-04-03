@@ -2,9 +2,9 @@ from models.liamometer_helpers import *
 
 import pandas as pd
 
-mojo = pd.read_csv('/Users/liamisaacs/Desktop/github repositories/personalwebsite/data/mojo.csv')
-imdb = pd.read_csv('/Users/liamisaacs/Desktop/github repositories/personalwebsite/data/imdb.csv')
-movie_images = pd.read_csv('/Users/liamisaacs/Desktop/github repositories/personalwebsite/data/heirloom.csv')
+mojo = pd.read_csv('/Users/liamisaacs/Desktop/github repositories/metis-project2/data/mojo.csv')
+imdb = pd.read_csv('/Users/liamisaacs/Desktop/github repositories/metis-project2/data/imdb.csv')
+movie_images = pd.read_csv('/Users/liamisaacs/Desktop/github repositories/metis-project2/data/movie_images.csv')
 
 html_ = give_html(mojo, imdb, movie_images)
 #Ignore the first row because I just can't handle admitting that Sunset Blvd., a re-release from 1950, is my favorite movie it's too much

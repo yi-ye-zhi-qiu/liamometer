@@ -90,7 +90,7 @@ def run_linear(X, y):
 def give_X_y(df):
 
     df = one_hot_encode('genres', df)
-    df = replace_(df, 'distributor', 40)
+    df = replace_(df, 'distributor', 20)
     #df = one_hot_encode('distributor', df)
 
     #Train-test split
