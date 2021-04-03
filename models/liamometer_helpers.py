@@ -58,7 +58,7 @@ def create_interactions(df):
     """
     df_int = df.copy()
     #range skips over things we do not want to interact with
-    for i in range(2, len(df.columns)-1):
+    for i in range(6, len(df.columns)-1):
         for j in range(i+1, len(df.columns)):
             name = str(df.columns[i]) + ' * ' + str(df.columns[j])
             df_int.loc[:, name] = df[str(df.columns[i+1])] * df[str(df.columns[j])]
@@ -91,6 +91,7 @@ def give_X_y(df):
 
     df = one_hot_encode('genres', df)
     df = replace_(df, 'distributor', 20)
+    df = create_interactions(df)
     #df = one_hot_encode('distributor', df)
 
     #Train-test split
