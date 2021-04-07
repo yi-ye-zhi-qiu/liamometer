@@ -60,7 +60,7 @@ Output
 
 ### How it works
 
-To follow along you can see the five notebooks. They are:
+*After* webscraping, you can follow along using the five notebooks. They are:
 - Step I: EDA (exploring review sources)
 - Step II: Data cleaning (removing MPAA Rating, Budget)
 - Step III: Data modeling (one-hot encoding genre, genre-genre interactions, distributor) in the form of linear regression and degree 2 polynomial regression; metric used: R^2
