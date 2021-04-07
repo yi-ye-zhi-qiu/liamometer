@@ -4,12 +4,11 @@
 
 ![Metis logo](images/metis.png) Metis data-science bootcamp project 2, **Jan. 11-22 2021**
 
-** [See the final product](http://liamisaacs.com/liamometer) **
-** Project was presented, [slides used](presentation_slides.pdf) **
+- [See the final product](http://liamisaacs.com/liamometer)
+- [Read the blog post](https://yeqiuu.medium.com/movie-ratings-for-fans-of-small-internationally-successful-studios-2b296ed179ec)
+- Project was presented, [slides](final_presentation.pdf)
 
-**Summary:**  FlaskApp of movies rated using a k- (5-) fold cross-validation lasso multiple linear regression model of IMDb scores (n=2316) scraped off the web, where we chose to use two features: genre (Action, Adventure, etc.) and movie distributor (Disney, Paramount, Other defined as <=7 movies/year, etc.) to analyze for a 2017-2020 timeframe. This model is interpretive and the use case is: "I can see how well a movie did on IMDb, how does that rating compare to if I were to *only* care about a categorical subset of variables, if I were to only consider that it's a Disney Animation, for instance?"
-
-- Want graphs & written analysis, not just a jupyter notebook? 🤔️ Check "download more stats" - there's a report there. Alternatively, see [this pdf](https://github.com/yi-ye-zhi-qiu/metis-project2/blob/main/Linear%20Regression%20of%20IMDB%20ratings.pdf).
+**Summary:**  FlaskApp of movies rated using a k- (5-) fold cross-validation lasso multiple linear regression model of IMDB scores (n=2316) scraped off the web, where we chose to use three features: genre (Action, Adventure, etc.), genre-genre interactions (Horror Thriller, for example), and movie distributor (Disney, Paramount, Other defined as <=5 movies/year, etc.) to analyze timeframe. This model is interpretive and the use case is: "Can we train a critic to think about movie ratings as if they are a fan of small, internationally-successful studios?"
 
 ----
 
@@ -33,7 +32,7 @@ The scrapy spider & data analysis:
 
 The web-scraping:
 
-For a tutorial on web-scraping using Scrapy you can see my blogpost [here](https://yeqiuu.medium.com/tutorial-scraping-boxofficemojo-with-scrapy-299e7b35254e). 
+For a tutorial on web-scraping using Scrapy you can see my blogpost [here](https://yeqiuu.medium.com/tutorial-scraping-boxofficemojo-with-scrapy-299e7b35254e).
 
 The WebApp:
 
@@ -57,20 +56,15 @@ In your terminal:
 Output
 - in "boxoffice_scrapy": `heirloom.csv`, `imdb.csv`, `metacritic.csv`, `mojo.csv`, `tomatoes.csv`
 
-To get data analysis:
-- run `analysis.ipynb`
-(or build a FlaskApp by copying [this code](https://github.com/yi-ye-zhi-qiu/personalwebsite))
-
 ----
 
-Project Map   
+### How it works
 
-This project is split into data collection and data cleaning/analysis.
+To follow along you can see the five notebooks. They are:
+- Step I: EDA (exploring review sources)
+- Step II: Data cleaning (removing MPAA Rating, Budget)
+- Step III: Data modeling (one-hot encoding genre, genre-genre interactions, distributor) in the form of linear regression and degree 2 polynomial regression; metric used: R^2
+- Step IV: Comparing our regularized and non-regularized linear and polynomial models via residual plots and Q-Q plots
+- Step V: Making an html dataframe to use in a flask webapp (see `liamometer.py`, `app.py` and `/templates`)
 
-### Data collection
-
-- Collected using scrapy web-crawling framework (all found in `boxoffice_scrapy`)
-
-### Data cleaning and analysis
-
-- Cleaned and analyzed using python (all found in `analysis.ipynb`)
+----
